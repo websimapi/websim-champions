@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Selection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="character-selection">
+        <h1 class="title">Choose Your Hero</h1>
+        
+        <div class="characters-grid">
+            <div class="character-slot" data-player="1" data-color="blue">
+                <div class="character-frame">
+                    <img src="character1.png" alt="Warrior" class="character-image">
+                    <div class="character-overlay">
+                        <div class="player-indicator">P1</div>
+                        <div class="character-name">Warrior</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="character-slot" data-player="2" data-color="green">
+                <div class="character-frame">
+                    <img src="character2.png" alt="Archer" class="character-image">
+                    <div class="character-overlay">
+                        <div class="player-indicator">P2</div>
+                        <div class="character-name">Archer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="character-slot" data-player="3" data-color="yellow">
+                <div class="character-frame">
+                    <img src="character3.png" alt="Wizard" class="character-image">
+                    <div class="character-overlay">
+                        <div class="player-indicator">P3</div>
+                        <div class="character-name">Wizard</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="character-slot" data-player="4" data-color="red">
+                <div class="character-frame">
+                    <img src="character4.png" alt="Valkyrie" class="character-image">
+                    <div class="character-overlay">
+                        <div class="player-indicator">P4</div>
+                        <div class="character-name">Valkyrie</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <p>Press A to Select Character</p>
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+

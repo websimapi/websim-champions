@@ -11,6 +11,7 @@ body {
     min-height: 100vh;
     overflow-x: auto;
     overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .character-selection {
@@ -20,6 +21,7 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    width: 100%;
 }
 
 .title {
@@ -40,6 +42,8 @@ body {
     gap: 2rem;
     max-width: 1200px;
     width: 100%;
+    padding: 0 1rem;
+    justify-items: center; /* Center items within grid cells */
 }
 
 .character-slot {
@@ -62,6 +66,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+    margin: 0 auto;
 }
 
 .character-slot[data-color="blue"] .character-frame {
@@ -144,11 +149,28 @@ body {
 }
 
 /* Mobile landscape optimizations */
-@media (max-width: 768px) {
-    body {
-        transform: rotate(0deg);
+@media (max-width: 900px) {
+    .character-frame {
+        width: 160px;
+        height: 200px;
     }
-    
+
+    .characters-grid {
+        gap: 1.5rem;
+    }
+
+    .title {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .instructions {
+        margin-top: 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 768px) {
     .title {
         font-size: 2rem;
         margin-bottom: 2rem;
@@ -172,7 +194,7 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
     .character-frame {
         width: 140px;
         height: 180px;
@@ -181,5 +203,12 @@ body {
     .characters-grid {
         gap: 1rem;
     }
-}
 
+    .character-name {
+        font-size: 1rem;
+    }
+
+    .player-indicator {
+        font-size: 0.7rem;
+    }
+}

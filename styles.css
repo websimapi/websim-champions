@@ -9,8 +9,8 @@ body {
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     color: #ffffff;
     min-height: 100vh;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
@@ -39,10 +39,11 @@ body {
 .characters-grid {
     display: flex;
     flex-wrap: nowrap;
-    gap: 2rem;
+    gap: 2vw;
     width: 100%;
-    padding: 0 1rem;
+    padding: 0 2vw;
     justify-content: center;
+    align-items: center;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
@@ -62,7 +63,10 @@ body {
     position: relative;
     cursor: pointer;
     transition: transform 0.2s ease;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    flex-grow: 0;
+    flex-basis: 22%;
+    max-width: 200px;
     scroll-snap-align: center;
 }
 
@@ -72,8 +76,9 @@ body {
 
 .character-frame {
     position: relative;
-    width: 200px;
-    height: 250px;
+    width: 100%;
+    padding-top: 125%; /* Aspect ratio 4:5 */
+    height: 0;
     border: 4px solid transparent;
     border-radius: 12px;
     overflow: hidden;
@@ -104,6 +109,9 @@ body {
 }
 
 .character-image {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 80%;
     object-fit: cover;
@@ -164,29 +172,18 @@ body {
 
 /* Mobile landscape optimizations */
 @media (max-width: 900px) {
-    .character-frame {
-        width: 160px;
-        height: 200px;
+    .character-slot {
+        flex-basis: 23%;
+        max-width: 160px;
     }
 
     .characters-grid {
-        gap: 1.5rem;
+        gap: 1.5vw;
     }
 
     .title {
         font-size: 2.5rem;
         margin-bottom: 2rem;
-    }
-    
-    .characters-grid {
-        justify-content: flex-start; /* Align to start for scrolling */
-        padding-left: calc(50vw - 80px - 0.75rem); /* Center first item */
-        padding-right: calc(50vw - 80px - 0.75rem); /* Center last item */
-    }
-    
-    .character-frame {
-        width: 160px;
-        height: 200px;
     }
     
     .instructions {
@@ -201,18 +198,14 @@ body {
         margin-bottom: 2rem;
     }
     
-    .characters-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(2, 1fr);
-        gap: 1.5rem;
-        max-width: 600px;
+    .character-name {
+        font-size: 1rem;
     }
-    
-    .character-frame {
-        width: 160px;
-        height: 200px;
+
+    .player-indicator {
+        font-size: 0.7rem;
     }
-    
+
     .instructions {
         margin-top: 2rem;
         font-size: 1rem;
@@ -220,22 +213,19 @@ body {
 }
 
 @media (max-width: 640px) {
-    .character-frame {
-        width: 140px;
-        height: 180px;
+     .character-slot {
+        flex-basis: 24%;
+        max-width: 140px;
     }
-    
     .characters-grid {
-        gap: 1rem;
-        padding-left: calc(50vw - 70px - 0.5rem); /* Center first item */
-        padding-right: calc(50vw - 70px - 0.5rem); /* Center last item */
+        gap: 1vw;
     }
 
     .character-name {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .player-indicator {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
     }
 }

@@ -76,8 +76,11 @@ function selectiveRecolorWarrior(img, targetHue, returnBlob = false) {
                         const px = pixelIndex % c.width;
                         const py = Math.floor(pixelIndex / c.width);
 
-                        // Only apply to the bottom-left quadrant
-                        if (px < c.width / 2 && py > c.height / 2) {
+                        // Apply to bottom-left quadrant, and bottom half of bottom-right quadrant
+                        const isBottomLeft = px < c.width / 2 && py > c.height / 2;
+                        const isBottomHalfOfBottomRight = px >= c.width / 2 && py > c.height * 0.75;
+
+                        if (isBottomLeft || isBottomHalfOfBottomRight) {
                             p[i+3] = 0; // Set alpha to transparent
                             continue; // Skip other color processing for this pixel
                         }

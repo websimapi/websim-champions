@@ -11,7 +11,9 @@ function forceLandscape() {
         if (message) message.style.display = 'none';
 
         function checkOrientation() {
-            const isPortrait = window.innerHeight > window.innerWidth;
+            // Screen API for more reliable orientation detection
+            const isPortrait = screen.orientation ? screen.orientation.type.includes('portrait') : window.innerHeight > window.innerWidth;
+
             if (isPortrait) {
                 document.body.classList.add('force-landscape');
             } else {
@@ -22,10 +24,16 @@ function forceLandscape() {
         // Check orientation on load and on any change
         checkOrientation();
         window.addEventListener('resize', checkOrientation);
-        // orientationchange is sometimes more reliable
-        window.addEventListener('orientationchange', () => {
-            // A small delay can help get the correct dimensions after orientation change
-            setTimeout(checkOrientation, 100);
-        });
+        
+        // Use screen.orientation if available, otherwise fallback to orientationchange
+        if (screen.orientation) {
+            screen.orientation.addEventListener('change', () => {
+                setTimeout(checkOrientation, 100);
+            });
+        } else {
+            window.addEventListener('orientationchange', () => {
+                setTimeout(checkOrientation, 100);
+            });
+        }
     }
 }

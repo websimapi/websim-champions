@@ -173,7 +173,7 @@ body {
     border-radius: 6px;
     background: rgba(0,0,0,0.4);
     display: inline-block;
-    flex-grow: 0;
+    flex-grow: 1;
     white-space: nowrap;
 }
 
@@ -227,11 +227,12 @@ body {
 .character-name-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    border: 2px solid;
     padding: 2px;
     border-radius: 6px;
     background: rgba(0,0,0,0.4);
-    margin: 0 auto 4px;
+    margin: 4px auto;
     width: 90%;
     max-width: 200px;
 }

@@ -1,3 +1,7 @@
+:root {
+    --relic-cursor: url('/relic_cursor.png') 16 2, auto;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -22,6 +26,10 @@ body {
 
 @media (pointer: coarse) {
     body, .arrow, #start-overlay { cursor: auto; }
+}
+
+@media (pointer: fine) {
+    html.use-custom-cursor * { cursor: none !important; }
 }
 
 .character-selection {
@@ -466,4 +474,11 @@ body {
     .character-stats div {
         font-size: 0.6rem;
     }
+}
+
+#custom-cursor {
+    position: fixed; width: 32px; height: 32px;
+    background: url('/relic_cursor.png') no-repeat center/contain;
+    pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
+    opacity: 0; transition: opacity .15s ease;
 }

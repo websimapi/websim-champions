@@ -299,9 +299,51 @@ function initializeStartOverlay() {
     }, { once: true }); // The event listener will only run once
 }
 
+function initializeRelicCursor() {
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    console.info('[RelicCursor] Pointer fine:', fine);
+    if (!fine) { console.info('[RelicCursor] Using system cursor (coarse pointer).'); return; }
+
+    // Ensure CSS variable is applied
+    const computed = getComputedStyle(document.documentElement).getPropertyValue('--relic-cursor').trim();
+    console.info('[RelicCursor] --relic-cursor:', computed || '(missing)');
+    if (!computed) document.documentElement.style.setProperty('--relic-cursor', "url('/relic_cursor.png') 16 2, auto");
+
+    const img = new Image();
+    img.onload = () => {
+        console.info('[RelicCursor] Loaded relic_cursor.png', { w: img.naturalWidth, h: img.naturalHeight });
+        document.documentElement.classList.add('use-custom-cursor');
+        let cursor = document.getElementById('custom-cursor');
+        if (!cursor) {
+            cursor = document.createElement('div');
+            cursor.id = 'custom-cursor';
+            document.body.appendChild(cursor);
+        }
+        const show = () => (cursor.style.opacity = '1');
+        const hide = () => (cursor.style.opacity = '0');
+        window.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            show();
+        });
+        window.addEventListener('mouseenter', show);
+        window.addEventListener('mouseleave', hide);
+        window.addEventListener('blur', hide);
+        window.addEventListener('touchstart', () => {
+            console.info('[RelicCursor] Touch detected, hiding custom cursor.');
+            hide();
+            document.documentElement.classList.remove('use-custom-cursor');
+        }, { passive: true });
+        console.info('[RelicCursor] Custom cursor active.');
+    };
+    img.onerror = (e) => console.error('[RelicCursor] Failed to load /relic_cursor.png', e);
+    img.src = '/relic_cursor.png';
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
     initializeCharacterSelection();
     initializeStartOverlay();
+    initializeRelicCursor();
 });

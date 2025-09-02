@@ -52,7 +52,6 @@ const ANIMATION_DURATION = 500; // ms
 function updateCharacterSlot(slot, character, direction) {
     const imageWrapper = slot.querySelector('.character-image-wrapper');
     const oldImage = imageWrapper.querySelector('.character-image');
-    const statsContainer = slot.querySelector('.character-stats');
     const arrows = slot.querySelectorAll('.arrow');
 
     // Disable arrows during animation
@@ -72,32 +71,23 @@ function updateCharacterSlot(slot, character, direction) {
     // Apply color shader to new image immediately
     applyColorShaderToImage(newImage, slot.dataset.color);
 
-    // Animate old image out and stats fade
+    // Animate old image out
     oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
-    statsContainer.classList.add('fade-out');
 
     // Play sound
     playSound(stoneShiftBuffer);
 
-    // After half the animation, update the text content
+    // After animation is complete, clean up and update stats
     setTimeout(() => {
+        oldImage.remove();
+        newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
+        
+        // Update the text content
         slot.querySelector('.stat-label').textContent = character.name;
         slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
         slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
         slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
         slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
-        
-        // Start fading stats back in
-        statsContainer.classList.remove('fade-out');
-        statsContainer.classList.add('fade-in');
-    }, ANIMATION_DURATION / 2);
-
-
-    // After animation is complete, clean up
-    setTimeout(() => {
-        oldImage.remove();
-        newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
-        statsContainer.classList.remove('fade-in');
         
         // Re-enable arrows
         arrows.forEach(arrow => arrow.disabled = false);

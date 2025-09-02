@@ -72,8 +72,15 @@ function selectiveRecolorWarrior(img, targetHue, returnBlob = false) {
                     // Check for near-#878787 grey pixels and make them transparent
                     // HSL of #878787 is h:0, s:0, l:0.53
                     if (hsl.s < 0.1 && hsl.l > 0.5 && hsl.l < 0.56) {
-                        p[i+3] = 0; // Set alpha to transparent
-                        continue; // Skip other color processing for this pixel
+                        const pixelIndex = i / 4;
+                        const px = pixelIndex % c.width;
+                        const py = Math.floor(pixelIndex / c.width);
+
+                        // Only apply to the bottom-left quadrant
+                        if (px < c.width / 2 && py > c.height / 2) {
+                            p[i+3] = 0; // Set alpha to transparent
+                            continue; // Skip other color processing for this pixel
+                        }
                     }
 
                     if (isBluish(hsl.h, hsl.s, hsl.l, r, g, b)) {

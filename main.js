@@ -88,10 +88,7 @@ function updateCharacterSlot(slot, character, direction) {
     const nameText = slot.querySelector('.character-name-text');
 
     // Disable arrows during animation
-    arrows.forEach(arrow => {
-        arrow.disabled = true;
-        arrow.classList.add('disabled-state');
-    });
+    arrows.forEach(arrow => arrow.disabled = true);
     
     // Fade out name
     nameText.classList.add('fade-out');
@@ -128,10 +125,7 @@ function updateCharacterSlot(slot, character, direction) {
         slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
         
         // Re-enable arrows
-        arrows.forEach(arrow => {
-            arrow.disabled = false;
-            arrow.classList.remove('disabled-state');
-        });
+        arrows.forEach(arrow => arrow.disabled = false);
     }, ANIMATION_DURATION);
 
     // Halfway through the animation, change the name and fade it in
@@ -314,24 +308,17 @@ function initializeRelicCursor() {
         }
         const INTERACTIVE_SELECTOR = '.arrow';
         const show = () => (cursor.style.opacity = '1');
-        const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active', 'disabled'); };
+        const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); cursor.classList.remove('cooldown'); };
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
             const el = document.elementFromPoint(e.clientX, e.clientY);
-            const interactiveEl = el && el.closest(INTERACTIVE_SELECTOR);
-            
-            cursor.classList.remove('active', 'disabled');
-            if (interactiveEl) {
-                if (interactiveEl.disabled || interactiveEl.classList.contains('disabled-state')) {
-                    cursor.classList.add('disabled');
-                } else {
-                    cursor.classList.add('active');
-                }
-            }
+            const interactive = el && el.closest(INTERACTIVE_SELECTOR);
+            const isDisabled = !!(interactive && interactive.disabled);
+            cursor.classList.toggle('active', !!interactive);
+            cursor.classList.toggle('cooldown', !!(interactive && isDisabled));
             show();
         });
-        
         window.addEventListener('mouseenter', show);
         window.addEventListener('mouseleave', hide);
         window.addEventListener('blur', hide);

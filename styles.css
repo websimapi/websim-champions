@@ -17,11 +17,11 @@ body {
     color: #ffffff;
     height: 100vh;
     overflow: hidden;
-    cursor: url('relic_cursor.png') 16 0, auto;
+    cursor: var(--relic-cursor);
 }
 
 @media (pointer: coarse) {
-    body { cursor: auto; }
+    body, .arrow, #start-overlay { cursor: auto; }
 }
 
 .character-selection {
@@ -318,7 +318,7 @@ body {
     border: none;
     color: white;
     font-size: 1.2rem;
-    cursor: pointer;
+    cursor: var(--relic-cursor);
     padding: 0 8px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     transition: transform 0.1s ease;
@@ -357,7 +357,7 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 100;
-    cursor: pointer;
+    cursor: var(--relic-cursor);
     transition: opacity 0.5s ease-out;
 }
 

@@ -31,7 +31,6 @@ function initializeStartOverlay() {
     const startOverlay = document.getElementById('start-overlay');
 
     startOverlay.addEventListener('click', async () => {
-        try { if (window.preprocessPromise) await window.preprocessPromise; } catch(_) {}
         startOverlay.classList.add('hidden');
         await initializeAudio();
     }, { once: true }); // The event listener will only run once

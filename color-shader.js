@@ -15,23 +15,47 @@ function applyColorShader(slot) {
 
 function applyColorShaderToImage(image, slotColorName) {
     if (!image) return Promise.resolve();
-    const targetHue = slotColors[slotColorName];
-    const baseHue = parseInt(image.dataset.baseHue, 10);
-    if (baseHue === 120) { 
-        return selectiveRecolorArcher(image, targetHue);
-    }
-    if (baseHue === 240) {
-        return selectiveRecolorWarrior(image, targetHue);
-    }
-    if (baseHue === 0) {
-        return selectiveRecolorValkyrie(image, targetHue);
-    }
-    const hueShift = targetHue - baseHue;
-    image.style.filter = `hue-rotate(${hueShift}deg)`;
-    return Promise.resolve();
+
+    return new Promise(resolve => {
+        const process = async () => {
+            const blobUrl = await processAndCacheImage(image, { baseHue: image.dataset.baseHue }, slotColorName);
+            if (blobUrl) {
+                if (image.dataset.blobUrl) URL.revokeObjectURL(image.dataset.blobUrl);
+                image.src = blobUrl;
+                image.dataset.blobUrl = blobUrl;
+            }
+            resolve();
+        };
+        
+        if (image.complete && image.naturalWidth) {
+            process();
+        } else {
+            image.addEventListener('load', process, { once: true });
+        }
+    });
 }
 
-function selectiveRecolorWarrior(img, targetHue) {
+function processAndCacheImage(img, characterData, slotColorName) {
+    const baseHue = parseInt(characterData.baseHue, 10);
+    const targetHue = slotColors[slotColorName];
+
+    if (baseHue === 120) { 
+        return selectiveRecolorArcher(img, targetHue, true);
+    }
+    if (baseHue === 240) {
+        return selectiveRecolorWarrior(img, targetHue, true);
+    }
+    if (baseHue === 0) {
+        return selectiveRecolorValkyrie(img, targetHue, true);
+    }
+    
+    // For characters without special logic (like Wizard), just return null as CSS filter is fine.
+    // We only need to cache canvas-processed images.
+    // To implement hue-rotate via canvas for them too, we would add that logic here.
+    return Promise.resolve(null);
+}
+
+function selectiveRecolorWarrior(img, targetHue, returnBlob = false) {
     const shift = ((targetHue - 240) + 360) % 360;
     return new Promise((resolve) => {
         const process = () => {
@@ -63,25 +87,29 @@ function selectiveRecolorWarrior(img, targetHue) {
                 }
                 x.putImageData(d, 0, 0);
                 c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    if (!blob) { resolve(returnBlob ? null : undefined); return; }
                     const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Warrior Recolor] Applied selective blue shift -> hue', targetHue);
-                    resolve();
+                    if (returnBlob) {
+                        resolve(url);
+                    } else {
+                        if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                        img.dataset.blobUrl = url;
+                        img.style.filter = ''; img.src = url;
+                        console.info('[Warrior Recolor] Applied selective blue shift -> hue', targetHue);
+                        resolve();
+                    }
                 });
             } catch (e) { 
                 console.warn('[Warrior Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-240}deg)`; 
-                resolve();
+                if (!returnBlob) img.style.filter = `hue-rotate(${targetHue-240}deg)`;
+                resolve(returnBlob ? null : undefined);
             }
         };
         if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
     });
 }
 
-function selectiveRecolorArcher(img, targetHue) {
+function selectiveRecolorArcher(img, targetHue, returnBlob = false) {
     const shift = ((targetHue - 120) + 360) % 360;
     return new Promise((resolve) => {
         const process = () => {
@@ -107,25 +135,29 @@ function selectiveRecolorArcher(img, targetHue) {
                 }
                 x.putImageData(d, 0, 0);
                 c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    if (!blob) { resolve(returnBlob ? null : undefined); return; }
                     const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Archer Recolor] Applied selective green shift -> hue', targetHue);
-                    resolve();
+                    if (returnBlob) {
+                        resolve(url);
+                    } else {
+                        if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                        img.dataset.blobUrl = url;
+                        img.style.filter = ''; img.src = url;
+                        console.info('[Archer Recolor] Applied selective green shift -> hue', targetHue);
+                        resolve();
+                    }
                 });
             } catch (e) { 
                 console.warn('[Archer Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-120}deg)`; 
-                resolve();
+                if (!returnBlob) img.style.filter = `hue-rotate(${targetHue-120}deg)`;
+                resolve(returnBlob ? null : undefined);
             }
         };
         if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
     });
 }
 
-function selectiveRecolorValkyrie(img, targetHue) {
+function selectiveRecolorValkyrie(img, targetHue, returnBlob = false) {
     const shift = ((targetHue - 0) + 360) % 360;
     return new Promise((resolve) => {
         const process = () => {
@@ -167,18 +199,22 @@ function selectiveRecolorValkyrie(img, targetHue) {
                 }
                 x.putImageData(d, 0, 0);
                 c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    if (!blob) { resolve(returnBlob ? null : undefined); return; }
                     const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Valkyrie Recolor] Applied selective red shift -> hue', targetHue);
-                    resolve();
+                    if (returnBlob) {
+                        resolve(url);
+                    } else {
+                        if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                        img.dataset.blobUrl = url;
+                        img.style.filter = ''; img.src = url;
+                        console.info('[Valkyrie Recolor] Applied selective red shift -> hue', targetHue);
+                        resolve();
+                    }
                 });
             } catch (e) { 
                 console.warn('[Valkyrie Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-0}deg)`; 
-                resolve();
+                if (!returnBlob) img.style.filter = `hue-rotate(${targetHue-0}deg)`;
+                resolve(returnBlob ? null : undefined);
             }
         };
         if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });

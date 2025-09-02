@@ -8,12 +8,16 @@ const characters = [
 
 const ANIMATION_DURATION = 500; // ms
 
+// Cache for pre-processed character images
+const characterImageCache = {};
+
 // Update a character slot with new character data
 function updateCharacterSlot(slot, character, direction) {
     const imageWrapper = slot.querySelector('.character-image-wrapper');
     const oldImage = imageWrapper.querySelector('.character-image');
     const arrows = slot.querySelectorAll('.arrow');
     const nameText = slot.querySelector('.character-name-text');
+    const color = slot.dataset.color;
 
     // Disable arrows during animation
     arrows.forEach(arrow => arrow.disabled = true);
@@ -24,7 +28,9 @@ function updateCharacterSlot(slot, character, direction) {
 
     // Create new image
     const newImage = document.createElement('img');
-    newImage.src = character.img;
+    const cachedSrc = characterImageCache[character.img]?.[color];
+    newImage.src = cachedSrc || character.img; // Use cached image if available
+    
     newImage.alt = character.name;
     newImage.className = 'character-image';
     newImage.dataset.baseHue = character.baseHue;
@@ -33,8 +39,10 @@ function updateCharacterSlot(slot, character, direction) {
     newImage.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
     imageWrapper.appendChild(newImage);
 
-    // Apply color shader to new image immediately
-    applyColorShaderToImage(newImage, slot.dataset.color);
+    // If we used a fallback, apply shader (should be rare after preloading)
+    if (!cachedSrc) {
+        applyColorShaderToImage(newImage, color);
+    }
 
     // Animate old image out
     oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
@@ -44,6 +52,10 @@ function updateCharacterSlot(slot, character, direction) {
 
     // After animation is complete, clean up and update stats
     setTimeout(() => {
+        // Revoke old blob url if it exists to prevent memory leaks
+        if (oldImage.dataset.blobUrl) {
+            URL.revokeObjectURL(oldImage.dataset.blobUrl);
+        }
         oldImage.remove();
         newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
         
@@ -70,7 +82,53 @@ function preprocessCharacters() {
     document.querySelectorAll('.character-slot').forEach(slot => {
         const img = slot.querySelector('.character-image');
         const color = slot.dataset.color;
-        tasks.push(applyColorShaderToImage(img, color));
+        const character = characters[parseInt(slot.dataset.characterIndex, 10)];
+        const cachedSrc = characterImageCache[character.img]?.[color];
+        
+        if (cachedSrc) {
+            if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+            img.src = cachedSrc;
+            img.dataset.blobUrl = cachedSrc;
+        } else {
+             // Fallback for safety, though should not be needed after preloading
+            tasks.push(applyColorShaderToImage(img, color));
+        }
     });
     return Promise.all(tasks);
+}
+
+async function preloadAllCharacterImages() {
+    console.log("Preloading all character image variants...");
+    const colors = ['blue', 'green', 'yellow', 'red'];
+    const promises = [];
+
+    for (const character of characters) {
+        characterImageCache[character.img] = {};
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Necessary for canvas operations
+        img.src = character.img;
+
+        const loadPromise = new Promise((resolve, reject) => {
+            img.onload = () => {
+                for (const color of colors) {
+                    const colorPromise = processAndCacheImage(img, character, color)
+                        .then(blobUrl => {
+                            if (blobUrl) {
+                                characterImageCache[character.img][color] = blobUrl;
+                            }
+                        });
+                    promises.push(colorPromise);
+                }
+                resolve();
+            };
+            img.onerror = () => {
+                console.error(`Failed to load image: ${character.img}`);
+                reject(`Failed to load image: ${character.img}`);
+            };
+        });
+        await loadPromise; // Wait for each image to load before processing the next one
+    }
+
+    await Promise.all(promises);
+    console.log("Preloading complete.", characterImageCache);
 }

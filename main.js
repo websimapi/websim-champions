@@ -12,11 +12,18 @@
 let preprocessPromise = null;
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     forceLandscape();
-    initializeCharacterSelection();
-    preprocessPromise = preprocessCharacters();
-    window.preprocessPromise = preprocessPromise; // Make available globally
-    initializeStartOverlay();
     initializeRelicCursor();
+    
+    // Preload all character images before doing anything else
+    await preloadAllCharacterImages();
+
+    // Hide preloader
+    const preloader = document.getElementById('preloader');
+    preloader.classList.add('hidden');
+
+    // Now initialize the rest of the app
+    initializeCharacterSelection();
+    initializeStartOverlay();
 });

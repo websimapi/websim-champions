@@ -8,10 +8,9 @@ function generatePeerId() {
     return 'achamps-' + Math.random().toString(36).substr(2, 6);
 }
 
-function initializePeerAsHost() {
-    // Let PeerJS server assign an ID for robustness.
-    // This avoids race conditions or unavailable ID errors.
-    peer = new Peer({
+function initializePeer(peerId) {
+    console.log('Initializing peer with ID:', peerId);
+    peer = new Peer(peerId, {
         // Add PeerJS server options here if needed, e.g., for a self-hosted server
     });
 
@@ -28,32 +27,49 @@ function initializePeerAsHost() {
 
     peer.on('error', (err) => {
         console.error('PeerJS error:', err);
-        // Handle errors, e.g., show an error message to the user.
+        // Handle errors, e.g., ID is taken
+        if (err.type === 'unavailable-id') {
+            console.log(`ID ${peerId} is unavailable. Retrying with a new ID...`);
+            initializePeer(generatePeerId()); // Retry with a new ID
+        }
     });
 }
 
 function showQrCode(peerId) {
+    console.log('Showing QR code for peer ID:', peerId);
     const qrContainer = document.getElementById('qr-code-container');
     const qrCodeDiv = document.getElementById('qr-code');
+
+    if (!qrContainer || !qrCodeDiv) {
+        console.error('QR code containers not found');
+        return;
+    }
 
     // Clear previous QR code if any
     qrCodeDiv.innerHTML = ''; 
 
-    new QRCode(qrCodeDiv, {
-        text: peerId,
-        width: 128,
-        height: 128,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
-    });
+    try {
+        new QRCode(qrCodeDiv, {
+            text: peerId,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
 
-    qrContainer.classList.remove('hidden');
+        qrContainer.classList.remove('hidden');
+        console.log('QR code displayed successfully');
+    } catch (error) {
+        console.error('Error creating QR code:', error);
+    }
 }
 
 document.addEventListener('start-hosting', () => {
     console.log("Starting session as host...");
-    initializePeerAsHost();
+    const peerId = generatePeerId();
+    console.log("Generated peer ID:", peerId);
+    initializePeer(peerId);
 });
 
 document.addEventListener('start-joining', (event) => {

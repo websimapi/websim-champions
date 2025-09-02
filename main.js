@@ -308,12 +308,15 @@ function initializeRelicCursor() {
         }
         const INTERACTIVE_SELECTOR = '.arrow';
         const show = () => (cursor.style.opacity = '1');
-        const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); };
+        const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active','disabled'); };
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
             const el = document.elementFromPoint(e.clientX, e.clientY);
-            cursor.classList.toggle('active', !!(el && el.closest(INTERACTIVE_SELECTOR)));
+            const btn = el && el.closest(INTERACTIVE_SELECTOR);
+            const isDisabled = !!(btn && btn.disabled);
+            cursor.classList.toggle('active', !!btn && !isDisabled);
+            cursor.classList.toggle('disabled', !!btn && isDisabled);
             show();
         });
         window.addEventListener('mouseenter', show);

@@ -3,8 +3,11 @@ function initializeCharacterSelection() {
     const characterSlots = document.querySelectorAll('.character-slot');
 
     characterSlots.forEach(slot => {
-        // Initial gender setup
-        slot.dataset.variant = 'Male'; // Default to Male for all slots
+        // Initial gender setup for archer
+        if(slot.dataset.characterIndex === '1') {
+            slot.dataset.archerGender = 'male';
+            slot.querySelector('.gender-toggle-container').style.visibility = 'visible';
+        }
 
         // Initial color shader application
         applyColorShader(slot);
@@ -27,77 +30,28 @@ function initializeCharacterSelection() {
             updateCharacterSlot(slot, characters[currentIndex], 'right');
         });
 
-        // Gender toggle listener
-        const genderToggle = slot.querySelector('.gender-toggle');
-        genderToggle.addEventListener('click', () => {
-            const currentIndex = parseInt(slot.dataset.characterIndex, 10);
-            const character = characters[currentIndex];
-            if (!character.variants) return;
+        // Gender toggle listeners
+        const genderToggles = slot.querySelectorAll('.gender-toggle');
+        genderToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const newGender = toggle.dataset.gender;
+                if (slot.dataset.archerGender === newGender) return; // No change
 
-            // Toggle variant
-            const currentVariant = slot.dataset.variant;
-            const newVariant = currentVariant === 'Male' ? 'Female' : 'Male';
-            slot.dataset.variant = newVariant;
+                // Update state and UI
+                slot.dataset.archerGender = newGender;
+                genderToggles.forEach(t => t.classList.remove('active'));
+                toggle.classList.add('active');
 
-            // Update button text immediately
-            genderToggle.textContent = newVariant === 'Female' ? '♀' : '♂';
-            
-            // Update image with animation
-            switchCharacterVariant(slot, character, newVariant);
+                // Trigger character update
+                const currentIndex = parseInt(slot.dataset.characterIndex, 10);
+                const currentCharacter = characters[currentIndex];
+                if (currentCharacter.genders) {
+                    // Use a subtle fade for gender swap
+                    updateCharacterSlot(slot, currentCharacter, 'fade');
+                }
+            });
         });
     });
-}
-
-function switchCharacterVariant(slot, character, newVariant) {
-    const imageWrapper = slot.querySelector('.character-image-wrapper');
-    const oldImage = imageWrapper.querySelector('.character-image');
-    const color = slot.dataset.color;
-    const genderToggle = slot.querySelector('.gender-toggle');
-
-    // Disable toggle during animation
-    genderToggle.disabled = true;
-
-    const newImgSrc = character.variants[newVariant].img;
-
-    // Create new image
-    const newImage = document.createElement('img');
-    const cachedSrc = characterImageCache[newImgSrc]?.[color];
-    newImage.src = cachedSrc || newImgSrc;
-    
-    newImage.alt = character.name;
-    newImage.className = 'character-image';
-    newImage.dataset.baseHue = character.baseHue;
-    
-    // Position new image for entry animation (fade)
-    newImage.style.opacity = '0';
-    imageWrapper.appendChild(newImage);
-
-    if (!cachedSrc) {
-        applyColorShaderToImage(newImage, color);
-    }
-    
-    // Animate old image out, new image in (cross-fade)
-    oldImage.style.transition = 'opacity 0.25s ease-in-out';
-    newImage.style.transition = 'opacity 0.25s ease-in-out';
-    
-    oldImage.style.opacity = '0';
-    setTimeout(() => {
-        newImage.style.opacity = '1';
-    }, 50);
-
-
-    // After animation is complete, clean up
-    setTimeout(() => {
-        if (oldImage.dataset.blobUrl) {
-            URL.revokeObjectURL(oldImage.dataset.blobUrl);
-        }
-        oldImage.remove();
-        
-        // Re-enable toggle
-        genderToggle.disabled = false;
-        document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
-
-    }, ANIMATION_DURATION);
 }
 
 // Set up the start overlay

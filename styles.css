@@ -232,6 +232,45 @@ body {
     opacity: 0;
 }
 
+.gender-toggle-container {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 5px; /* Space between toggle and name container */
+    height: 28px; /* Fixed height to prevent layout shifts */
+    visibility: hidden; /* Hide by default, JS makes it visible */
+}
+
+.gender-toggle {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #fff;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: var(--relic-cursor);
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.gender-toggle:not(.active) {
+    opacity: 0.5;
+    border-color: rgba(255,255,255,0.5);
+}
+
+.gender-toggle.active {
+    background: #fff;
+    color: #000;
+    transform: scale(1.1);
+    border-color: #fff;
+}
+
+.gender-toggle:hover:not(.active) {
+    background: rgba(255,255,255,0.2);
+}
+
 .character-overlay {
     display: none;
 }
@@ -319,30 +358,6 @@ body {
     margin: 0 0 4px;
     width: 90%;
     max-width: 200px;
-}
-
-.gender-toggle {
-    background: rgba(0,0,0,0.4);
-    border: 2px solid;
-    color: white;
-    font-size: 1rem;
-    font-family: 'Cinzel', serif;
-    cursor: var(--relic-cursor);
-    padding: 2px 8px;
-    border-radius: 6px;
-    margin-bottom: 4px;
-    transition: all 0.2s ease;
-    width: 40px; /* Fixed width */
-    text-align: center;
-}
-
-.gender-toggle:hover {
-    transform: scale(1.1);
-    border-color: #ffd700;
-}
-
-.gender-toggle:active {
-    transform: scale(1.05);
 }
 
 .arrow {

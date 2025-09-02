@@ -39,8 +39,7 @@ function processAndCacheImage(img, characterData, slotColorName) {
     const baseHue = parseInt(characterData.baseHue, 10);
     const targetHue = slotColors[slotColorName];
 
-    // Added a check for the new female archer image
-    if (baseHue === 120 && (characterData.img === '/character2.png' || characterData.img === '/character2_female.png')) { 
+    if (baseHue === 120) { 
         return selectiveRecolorArcher(img, targetHue, true);
     }
     if (baseHue === 240) {

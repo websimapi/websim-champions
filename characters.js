@@ -3,13 +3,12 @@ const characters = [
     { name: 'Warrior', img: '/character1.png', baseHue: 240, stats: { strength: 9, speed: 5, magic: 2, armour: 8 } },
     { 
         name: 'Archer', 
-        img: '/character2.png', 
+        genders: {
+            male: { img: '/character2.png' },
+            female: { img: '/character2_female.png' }
+        },
         baseHue: 120, 
-        stats: { strength: 6, speed: 9, magic: 4, armour: 5 },
-        variants: {
-            'Male': { img: '/character2.png' },
-            'Female': { img: '/character2_female.png' }
-        }
+        stats: { strength: 6, speed: 9, magic: 4, armour: 5 } 
     },
     { name: 'Wizard', img: '/character3.png', baseHue: 60, stats: { strength: 3, speed: 6, magic: 10, armour: 3 } },
     { name: 'Valkyrie', img: '/character4.png', baseHue: 0, stats: { strength: 7, speed: 7, magic: 6, armour: 6 } }
@@ -27,6 +26,18 @@ function updateCharacterSlot(slot, character, direction) {
     const arrows = slot.querySelectorAll('.arrow');
     const nameText = slot.querySelector('.character-name-text');
     const color = slot.dataset.color;
+    const genderToggle = slot.querySelector('.gender-toggle-container');
+
+    // Handle gendered characters
+    let characterImgSrc;
+    if (character.genders) {
+        const gender = slot.dataset.archerGender || 'male';
+        characterImgSrc = character.genders[gender].img;
+        genderToggle.style.visibility = 'visible';
+    } else {
+        characterImgSrc = character.img;
+        genderToggle.style.visibility = 'hidden';
+    }
 
     // Disable arrows during animation
     arrows.forEach(arrow => arrow.disabled = true);
@@ -34,14 +45,6 @@ function updateCharacterSlot(slot, character, direction) {
     
     // Fade out name
     nameText.classList.add('fade-out');
-
-    // Handle variants
-    let characterImgSrc = character.img;
-    if (character.variants) {
-        // If switching to a character with variants, default to Male
-        const currentVariant = slot.dataset.variant || 'Male';
-        characterImgSrc = character.variants[currentVariant].img;
-    }
 
     // Create new image
     const newImage = document.createElement('img');
@@ -82,15 +85,6 @@ function updateCharacterSlot(slot, character, direction) {
         slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
         slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
         
-        // Update gender toggle visibility
-        const genderToggle = slot.querySelector('.gender-toggle');
-        if (character.variants) {
-            genderToggle.style.display = 'block';
-            genderToggle.textContent = slot.dataset.variant === 'Female' ? '♀' : '♂';
-        } else {
-            genderToggle.style.display = 'none';
-        }
-
         // Re-enable arrows
         arrows.forEach(arrow => arrow.disabled = false);
         document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
@@ -109,7 +103,16 @@ function preprocessCharacters() {
         const img = slot.querySelector('.character-image');
         const color = slot.dataset.color;
         const character = characters[parseInt(slot.dataset.characterIndex, 10)];
-        const cachedSrc = characterImageCache[character.img]?.[color];
+
+        let characterImgSrc;
+        if (character.genders) {
+             const gender = slot.dataset.archerGender || 'male';
+             characterImgSrc = character.genders[gender].img;
+        } else {
+            characterImgSrc = character.img;
+        }
+
+        const cachedSrc = characterImageCache[characterImgSrc]?.[color];
         
         if (cachedSrc) {
             if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
@@ -127,43 +130,46 @@ async function preloadAllCharacterImages() {
     console.log("Preloading all character image variants...");
     const colors = ['blue', 'green', 'yellow', 'red'];
     const promises = [];
+    const imagesToLoad = [];
 
     for (const character of characters) {
-        const imagesToLoad = [];
-        if (character.variants) {
-            Object.values(character.variants).forEach(variant => imagesToLoad.push(variant.img));
+        if (character.genders) {
+            imagesToLoad.push(character.genders.male.img);
+            imagesToLoad.push(character.genders.female.img);
         } else {
             imagesToLoad.push(character.img);
         }
+    }
+    
+    const uniqueImages = [...new Set(imagesToLoad)];
 
-        for (const imgSrc of imagesToLoad) {
-            characterImageCache[imgSrc] = {};
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // Necessary for canvas operations
-            img.src = imgSrc;
+    for (const imgSrc of uniqueImages) {
+        characterImageCache[imgSrc] = {};
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Necessary for canvas operations
+        img.src = imgSrc;
 
-            const loadPromise = new Promise((resolve, reject) => {
-                img.onload = () => {
-                    for (const color of colors) {
-                        // The character data passed to processAndCacheImage needs the baseHue
-                        const characterDataForProcessing = { ...character, img: imgSrc };
-                        const colorPromise = processAndCacheImage(img, characterDataForProcessing, color)
-                            .then(blobUrl => {
-                                if (blobUrl) {
-                                    characterImageCache[imgSrc][color] = blobUrl;
-                                }
-                            });
-                        promises.push(colorPromise);
-                    }
-                    resolve();
-                };
-                img.onerror = () => {
-                    console.error(`Failed to load image: ${imgSrc}`);
-                    reject(`Failed to load image: ${imgSrc}`);
-                };
-            });
-            await loadPromise; // Wait for each image to load before processing the next one
-        }
+        const loadPromise = new Promise((resolve, reject) => {
+            img.onload = () => {
+                // Find the original character data to get baseHue
+                const characterData = characters.find(c => c.img === imgSrc || (c.genders && Object.values(c.genders).some(g => g.img === imgSrc)));
+                for (const color of colors) {
+                    const colorPromise = processAndCacheImage(img, characterData, color)
+                        .then(blobUrl => {
+                            if (blobUrl) {
+                                characterImageCache[imgSrc][color] = blobUrl;
+                            }
+                        });
+                    promises.push(colorPromise);
+                }
+                resolve();
+            };
+            img.onerror = () => {
+                console.error(`Failed to load image: ${imgSrc}`);
+                reject(`Failed to load image: ${imgSrc}`);
+            };
+        });
+        await loadPromise; // Wait for each image to load before processing the next one
     }
 
     await Promise.all(promises);

@@ -9,6 +9,8 @@ const characters = [
 // WebAudio setup
 let audioContext;
 let stoneShiftBuffer;
+let backgroundMusicBuffer;
+let isMusicPlaying = false;
 
 // Function to load a sound
 async function loadSound(url) {
@@ -30,13 +32,43 @@ function playSound(buffer) {
 
     // Resume AudioContext if it's in a suspended state (required by browser autoplay policies)
     if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        audioContext.resume().then(() => {
+            if (!isMusicPlaying) {
+                playBackgroundMusic();
+            }
+        });
     }
 
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
     source.connect(audioContext.destination);
     source.start(0);
+}
+
+function playBackgroundMusic() {
+    if (!audioContext || !backgroundMusicBuffer || isMusicPlaying) return;
+
+    if (audioContext.state !== 'running') {
+        // Wait for user interaction to start music
+        return;
+    }
+
+    isMusicPlaying = true;
+    
+    const source = audioContext.createBufferSource();
+    source.buffer = backgroundMusicBuffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 0.5; // Set volume to half
+
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    source.start(0);
+
+    source.onended = () => {
+        isMusicPlaying = false;
+        setTimeout(playBackgroundMusic, 5000); // Wait 5 seconds before repeating
+    };
 }
 
 const slotColors = {
@@ -239,8 +271,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        // Preload the sound effect
+        // Preload sounds
         stoneShiftBuffer = await loadSound('stone_shift.mp3');
+        backgroundMusicBuffer = await loadSound('/Ancient_Champions.ogg');
+        
+        // Attempt to start music right away if autoplay is allowed
+        playBackgroundMusic();
+
     } catch (e) {
         console.error("Web Audio API is not supported in this browser or the sound failed to load.", e);
     }

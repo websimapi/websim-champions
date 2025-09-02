@@ -536,6 +536,34 @@ body {
   100% { transform: translate(-50%, calc(-50% + 3px)) rotate(360deg); filter: drop-shadow(0 0 14px rgba(102,199,255,0.98)); }
 }
 
+/* Specific styles for landscape on mobile where height is constrained */
+@media (orientation: landscape) and (max-height: 500px) {
+    .title {
+        font-size: 2rem;
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+    }
+    .character-selection {
+        padding: 5px 0;
+        justify-content: flex-start;
+    }
+    .character-image {
+        top: 2%;
+        height: 65%;
+    }
+    .character-stats .stat-label {
+        font-size: 1.1rem;
+        padding: 1px 8px;
+    }
+    .character-name-container {
+        width: 95%;
+        max-width: 180px;
+    }
+    .select-character-text {
+        font-size: 0.9rem;
+    }
+}
+
 body.force-landscape {
     transform: rotate(90deg);
     transform-origin: top left;

@@ -88,19 +88,6 @@ function initializeCharacterSelection() {
                 slot.style.transform = 'scale(1.05)';
             }, 150);
         });
-        
-        // Add hover effects for desktop
-        slot.addEventListener('mouseenter', () => {
-            if (!slot.classList.contains('selected')) {
-                slot.style.transform = 'scale(1.05)';
-            }
-        });
-        
-        slot.addEventListener('mouseleave', () => {
-            if (!slot.classList.contains('selected')) {
-                slot.style.transform = 'scale(1)';
-            }
-        });
     });
 }
 

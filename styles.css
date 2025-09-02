@@ -17,7 +17,7 @@ body {
     color: #ffffff;
     height: 100vh;
     overflow: hidden;
-    cursor: url('/relic_cursor.png') 12 12, auto;
+    cursor: url('/relic_cursor.png') 16 2, auto;
 }
 
 @media (pointer: coarse) {
@@ -81,7 +81,7 @@ body {
 
 .character-slot {
     position: relative;
-    cursor: url('/relic_cursor.png') 12 12, pointer;
+    cursor: url('/relic_cursor.png') 16 2, pointer;
     transition: transform 0.2s ease;
     flex: 1 1 0;
     display: flex;
@@ -318,7 +318,7 @@ body {
     border: none;
     color: white;
     font-size: 1.2rem;
-    cursor: url('/relic_cursor.png') 12 12, pointer;
+    cursor: url('/relic_cursor.png') 16 2, pointer;
     padding: 0 8px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     transition: transform 0.1s ease;
@@ -357,7 +357,7 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 100;
-    cursor: url('/relic_cursor.png') 12 12, pointer;
+    cursor: url('/relic_cursor.png') 16 2, pointer;
     transition: opacity 0.5s ease-out;
 }
 

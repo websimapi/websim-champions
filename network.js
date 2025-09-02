@@ -1,5 +1,3 @@
-
-```
 import { Peer } from 'peerjs';
 
 let peer;
@@ -38,7 +36,7 @@ function initializePeer(peerId) {
 
 function showQrCode(peerId) {
     const qrContainer = document.getElementById('qr-code-container');
-    const qrCodeDiv = document.getElementById('qr-code');+
+    const qrCodeDiv = document.getElementById('qr-code');
 
     // Clear previous QR code if any
     qrCodeDiv.innerHTML = ''; 

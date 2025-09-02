@@ -89,6 +89,7 @@ function updateCharacterSlot(slot, character, direction) {
 
     // Disable arrows during animation
     arrows.forEach(arrow => arrow.disabled = true);
+    document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
     
     // Fade out name
     nameText.classList.add('fade-out');
@@ -126,6 +127,7 @@ function updateCharacterSlot(slot, character, direction) {
         
         // Re-enable arrows
         arrows.forEach(arrow => arrow.disabled = false);
+        document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
     }, ANIMATION_DURATION);
 
     // Halfway through the animation, change the name and fade it in
@@ -309,15 +311,22 @@ function initializeRelicCursor() {
         const INTERACTIVE_SELECTOR = '.arrow';
         const show = () => (cursor.style.opacity = '1');
         const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); cursor.classList.remove('cooldown'); };
-        window.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-            const el = document.elementFromPoint(e.clientX, e.clientY);
+        let lastPos = { x: 0, y: 0, has: false };
+        const updateAt = (x, y) => {
+            cursor.style.left = x + 'px'; cursor.style.top = y + 'px';
+            const el = document.elementFromPoint(x, y);
             const interactive = el && el.closest(INTERACTIVE_SELECTOR);
             const isDisabled = !!(interactive && interactive.disabled);
             cursor.classList.toggle('active', !!interactive);
             cursor.classList.toggle('cooldown', !!(interactive && isDisabled));
             show();
+        };
+        window.addEventListener('mousemove', (e) => {
+            lastPos = { x: e.clientX, y: e.clientY, has: true };
+            updateAt(e.clientX, e.clientY);
+        });
+        document.addEventListener('relic-cursor-refresh', () => {
+            if (lastPos.has) updateAt(lastPos.x, lastPos.y);
         });
         window.addEventListener('mouseenter', show);
         window.addEventListener('mouseleave', hide);

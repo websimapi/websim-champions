@@ -319,7 +319,30 @@ body {
     margin: 0 0 4px;
     width: 90%;
     max-width: 200px;
-    gap: 4px;
+}
+
+.gender-toggle {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid;
+    color: white;
+    font-size: 1rem;
+    font-family: 'Cinzel', serif;
+    cursor: var(--relic-cursor);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    width: 40px; /* Fixed width */
+    text-align: center;
+}
+
+.gender-toggle:hover {
+    transform: scale(1.1);
+    border-color: #ffd700;
+}
+
+.gender-toggle:active {
+    transform: scale(1.05);
 }
 
 .arrow {
@@ -343,24 +366,6 @@ body {
 }
 
 .arrow:active {
-    transform: scale(1.1);
-}
-
-.gender-toggle {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
-    font-size: 1rem;
-    cursor: var(--relic-cursor);
-    padding: 0 6px;
-    border-radius: 4px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.gender-toggle:hover {
-    background: rgba(255,255,255,0.2);
     transform: scale(1.1);
 }
 

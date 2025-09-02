@@ -92,7 +92,7 @@ function applyColorShader(slot) {
     const slotColorName = slot.dataset.color;
     const targetHue = slotColors[slotColorName];
     const baseHue = parseInt(sourceImg.dataset.baseHue, 10);
-    const hueShift = (targetHue - baseHue) / 360;
+    const hueShift = (targetHue - baseHue);
 
     const img = new Image();
     img.crossOrigin = "Anonymous";
@@ -112,15 +112,34 @@ function applyColorShader(slot) {
             const b = data[i + 2];
             const a = data[i + 3];
 
-            if (a > 0 && !isProtectedColor(r, g, b)) {
+            if (a > 0) {
                 let [h, s, l] = rgbToHsl(r, g, b);
-                h += hueShift;
-                if (h > 1) h -= 1;
-                if (h < 0) h += 1;
-                const [newR, newG, newB] = hslToRgb(h, s, l);
-                data[i] = newR;
-                data[i + 1] = newG;
-                data[i + 2] = newB;
+                const pixelHue = h * 360;
+
+                // Condition 1: Protect grays, whites, blacks, and very dark/light colors
+                if (s < 0.25 || l < 0.15 || l > 0.9) {
+                    continue;
+                }
+
+                // Condition 2: Protect browns, tans, and skin tones explicitly
+                if (pixelHue >= 15 && pixelHue <= 50 && s < 0.75) {
+                    continue;
+                }
+
+                // Condition 3: Only shift colors close to the original character's base hue
+                const hueDiff = Math.min(Math.abs(pixelHue - baseHue), 360 - Math.abs(pixelHue - baseHue));
+                const hueThreshold = 45; // How far from the base hue we should look for colors to change
+
+                if (hueDiff <= hueThreshold) {
+                    let newHue = (pixelHue + hueShift);
+                    // Ensure hue wraps around correctly
+                    newHue = (newHue + 360) % 360; 
+
+                    const [newR, newG, newB] = hslToRgb(newHue / 360, s, l);
+                    data[i] = newR;
+                    data[i + 1] = newG;
+                    data[i + 2] = newB;
+                }
             }
         }
         ctx.putImageData(imageData, 0, 0);

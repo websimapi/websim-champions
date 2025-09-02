@@ -2,6 +2,7 @@ import { Peer } from 'peerjs';
 
 let peer;
 let myPeerId = null;
+let isHost = false; // Add a flag to identify the host
 
 function generatePeerId() {
     // Generate a shorter, more readable ID
@@ -16,7 +17,9 @@ function initializePeer(peerId) {
     peer.on('open', (id) => {
         myPeerId = id;
         console.log('My peer ID is: ' + id);
-        showQrCode(id);
+        if (isHost) { // Only show QR code if this client is the host
+            showQrCode(id);
+        }
     });
 
     peer.on('connection', (conn) => {
@@ -29,7 +32,9 @@ function initializePeer(peerId) {
         // Handle errors, e.g., ID is taken
         if (err.type === 'unavailable-id') {
             console.log(`ID ${peerId} is unavailable. Retrying with a new ID...`);
-            initializePeer(generatePeerId()); // Retry with a new ID
+            if (isHost) { // Only retry with a new ID if host
+                initializePeer(generatePeerId()); // Retry with a new ID
+            }
         }
     });
 }
@@ -55,6 +60,7 @@ function showQrCode(peerId) {
 
 document.addEventListener('start-hosting', () => {
     console.log("Starting session as host...");
+    isHost = true; // Set the host flag
     const peerId = generatePeerId();
     initializePeer(peerId);
 });

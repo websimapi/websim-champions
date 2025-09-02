@@ -139,24 +139,6 @@ function selectiveRecolorArcher(img, targetHue, returnBlob = false) {
                 for (let i = 0; i < p.length; i += 4) {
                     const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
                     if (a < 5) continue;
-
-                    // New logic to make the dark grey at the feet transparent
-                    const pixelIndex = i / 4;
-                    const y = Math.floor(pixelIndex / c.width);
-
-                    // Check for dark grey color #343539 (RGB: 52, 53, 57) in the feet area (bottom 15% of image)
-                    if (y > c.height * 0.85) {
-                        const isTargetGrey = (
-                            Math.abs(r - 52) < 4 &&
-                            Math.abs(g - 53) < 4 &&
-                            Math.abs(b - 57) < 4
-                        );
-                        if (isTargetGrey) {
-                            p[i+3] = 0; // Make transparent
-                            continue;   // Skip other color processing
-                        }
-                    }
-
                     const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
                     if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
                         let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;

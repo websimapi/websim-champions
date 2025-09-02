@@ -1,3 +1,5 @@
+import { startScanner, stopScanner } from './qr.js';
+
 // UI interaction management
 function initializeCharacterSelection() {
     const characterSlots = document.querySelectorAll('.character-slot');
@@ -17,6 +19,7 @@ function initializeCharacterSelection() {
         const rightArrow = slot.querySelector('.right-arrow');
 
         leftArrow.addEventListener('click', () => {
+            if (slot.classList.contains('locked')) return;
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex - 1 + characters.length) % characters.length;
             slot.dataset.characterIndex = currentIndex;
@@ -24,6 +27,7 @@ function initializeCharacterSelection() {
         });
 
         rightArrow.addEventListener('click', () => {
+            if (slot.classList.contains('locked')) return;
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex + 1) % characters.length;
             slot.dataset.characterIndex = currentIndex;
@@ -34,6 +38,7 @@ function initializeCharacterSelection() {
         const genderToggles = slot.querySelectorAll('.gender-toggle');
         genderToggles.forEach(toggle => {
             toggle.addEventListener('click', () => {
+                if (slot.classList.contains('locked')) return;
                 const newGender = toggle.dataset.gender;
                 if (slot.dataset.archerGender === newGender) return; // No change
 
@@ -57,9 +62,55 @@ function initializeCharacterSelection() {
 // Set up the start overlay
 function initializeStartOverlay() {
     const startOverlay = document.getElementById('start-overlay');
+    const scanButton = document.getElementById('scan-to-play');
 
-    startOverlay.addEventListener('click', async () => {
-        startOverlay.classList.add('hidden');
-        await initializeAudio();
-    }, { once: true }); // The event listener will only run once
+    scanButton.addEventListener('click', () => {
+        const scannerContainer = document.getElementById('qr-scanner-container');
+        scannerContainer.classList.remove('hidden');
+        startScanner('qr-reader', (decodedText, decodedResult) => {
+            // on successful scan
+            console.log(`Scan result: ${decodedText}`);
+            stopScanner();
+            scannerContainer.classList.add('hidden');
+            
+            // Redirect to join the host's game
+            window.location.href = decodedText;
+        });
+    });
+
+    // The start overlay is now hidden by network.js after connection
+}
+
+function initializeScannerControls() {
+    const closeButton = document.getElementById('close-scanner');
+    const scannerContainer = document.getElementById('qr-scanner-container');
+
+    closeButton.addEventListener('click', () => {
+        stopScanner();
+        scannerContainer.classList.add('hidden');
+    });
+}
+
+export function initializeUI() {
+    initializeStartOverlay();
+    initializeScannerControls();
+    initializeCharacterSelection();
+}
+
+export function activatePlayerSlot(playerNum, isHost = false) {
+    const slot = document.querySelector(`.character-slot[data-player="${playerNum}"]`);
+    if (slot && slot.classList.contains('empty')) {
+        slot.classList.remove('empty');
+        slot.querySelector('.character-image').style.display = 'block';
+        slot.querySelector('.character-stats').style.visibility = 'visible';
+        
+        if (!isHost) {
+            // Lock controls for non-host players viewing other slots
+            slot.classList.add('locked');
+        }
+        
+        // Initial character setup
+        const charIndex = parseInt(slot.dataset.characterIndex, 10);
+        updateCharacterSlot(slot, characters[charIndex], 'fade'); 
+    }
 }

@@ -1,4 +1,7 @@
 // Main initialization and coordination
+import { initializeNetwork } from './network.js';
+import { initializeUI } from './ui.js';
+
 // removed character data - now in characters.js
 // removed WebAudio setup and sound functions - now in audio.js  
 // removed color shader functions - now in color-shader.js
@@ -23,7 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const preloader = document.getElementById('preloader');
     preloader.classList.add('hidden');
 
-    // Now initialize the rest of the app
-    initializeCharacterSelection();
-    initializeStartOverlay();
+    // Initialize UI elements like start screen and scanner
+    initializeUI();
+
+    // Initialize networking, which will handle game state and player connections
+    await initializeNetwork();
 });

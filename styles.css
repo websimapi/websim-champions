@@ -81,7 +81,7 @@ body {
 }
 
 .character-slot.selected .character-frame {
-    transform: scale(1.05);
+    transform: none; /* remove grow-on-tap effect */
 }
 
 .character-frame {

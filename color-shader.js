@@ -87,13 +87,13 @@ function selectiveRecolorWizard(img, targetHue) {
                     const hsl = rgbToHsl(r, g, b);
                     if (isYellowish(hsl.h, hsl.s, hsl.l, r, g, b)) {
                         let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-                        if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.15); l = Math.max(0, Math.min(1, l * 1.05)); }
-                        else if (targetHue === 120) { h = 120; s = Math.min(1, s * 1.18); l = Math.max(0, Math.min(1, l * 1.08)); }
-                        else if (targetHue === 240) { h = 240; s = Math.min(1, s * 1.12); l = Math.max(0, Math.min(1, l * 1.06)); }
+                        if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.25); l = Math.max(0, Math.min(1, l * 1.1)); }
+                        else if (targetHue === 120) { h = 120; s = Math.min(1, s * 1.2); l = Math.max(0, Math.min(1, l * 1.05)); }
+                        else if (targetHue === 240) { h = 240; s = Math.min(1, s * 1.15); l = Math.max(0, Math.min(1, l * 1.08)); }
                         const rgb = hslToRgb(h, s, l);
                         const rr = targetHue === 0 ? Math.min(255, rgb.r + 12) : (targetHue === 120 ? Math.max(0, rgb.r - 8) : rgb.r);
-                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 8) : (targetHue === 120 ? Math.min(255, rgb.g + 15) : rgb.g);
-                        const bb = targetHue === 0 ? Math.max(0, rgb.b - 20) : (targetHue === 240 ? Math.min(255, rgb.b + 18) : rgb.b);
+                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 8) : (targetHue === 240 ? Math.max(0, rgb.g - 12) : rgb.g);
+                        const bb = targetHue === 120 ? Math.max(0, rgb.b - 20) : (targetHue === 240 ? Math.min(255, rgb.b + 15) : rgb.b);
                         p[i] = rr; p[i+1] = gg; p[i+2] = bb;
                     }
                 }
@@ -130,13 +130,13 @@ function isGreenish(h, s, l, r, g, b) {
 
 function isYellowish(h, s, l, r, g, b) {
     const d = Math.abs(h - 60); const hueDist = Math.min(d, 360 - d);
-    const hueOK = hueDist <= 50;
+    const hueOK = hueDist <= 70;
     const yellowDominance = (r + g) - (2 * b);
-    const chromaOK = yellowDominance > 15;
+    const chromaOK = yellowDominance > 10;
     const satOK = s > 0.12;
-    const lightOK = l > 0.08 && l < 0.90;
-    const brightYellowGuard = (r > b && g > b) && ((r + g) >= 60) && l > 0.25;
-    return ((hueOK && satOK && lightOK) || chromaOK || brightYellowGuard);
+    const lightOK = l > 0.08 && l < 0.88;
+    const magicalEffectGuard = (r > b && g > b) && (r + g >= 60) && l > 0.25;
+    return ((hueOK && satOK && lightOK) || chromaOK || magicalEffectGuard);
 }
 
 function rgbToHsl(r, g, b) {

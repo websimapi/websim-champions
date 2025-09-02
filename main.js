@@ -148,9 +148,82 @@ function applyColorShaderToImage(image, slotColorName) {
     if (!image) return;
     const targetHue = slotColors[slotColorName];
     const baseHue = parseInt(image.dataset.baseHue, 10);
+    if (baseHue === 120) { // Archer: selectively recolor only green regions
+        selectiveRecolorArcher(image, targetHue);
+        return;
+    }
     const hueShift = targetHue - baseHue;
-
     image.style.filter = `hue-rotate(${hueShift}deg)`;
+}
+
+function selectiveRecolorArcher(img, targetHue) {
+    const shift = ((targetHue - 120) + 360) % 360; // shift from green
+    const process = () => {
+        try {
+            const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+            c.width = img.naturalWidth; c.height = img.naturalHeight;
+            x.drawImage(img, 0, 0);
+            const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+            for (let i = 0; i < p.length; i += 4) {
+                const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                if (a < 5) continue;
+                const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
+                if (isGreenish(hsl.h, hsl.s, hsl.l)) {
+                    let h = (hsl.h + shift) % 360;
+                    const rgb = hslToRgb(h, hsl.s, hsl.l);
+                    p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
+                }
+            }
+            x.putImageData(d, 0, 0);
+            c.toBlob(blob => {
+                if (!blob) return;
+                if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                const url = URL.createObjectURL(blob);
+                img.dataset.blobUrl = url;
+                img.style.filter = ''; img.src = url;
+                console.info('[Archer Recolor] Applied selective green shift -> hue', targetHue);
+            });
+        } catch (e) { console.warn('[Archer Recolor] Fallback to CSS filter', e); img.style.filter = `hue-rotate(${targetHue-120}deg)`; }
+    };
+    if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+}
+
+function isGreenish(h, s, l) {
+    // Focus on cloth greens; avoid skin tones
+    const inHue = (h >= 85 && h <= 155);
+    return inHue && s > 0.25 && l > 0.15 && l < 0.85;
+}
+
+function rgbToHsl(r, g, b) {
+    r/=255; g/=255; b/=255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let h, s, l = (max+min)/2;
+    if (max === min) { h = 0; s = 0; }
+    else {
+        const d = max - min;
+        s = l > .5 ? d/(2-max-min) : d/(max+min);
+        switch (max) {
+            case r: h = (g-b)/d + (g<b?6:0); break;
+            case g: h = (b-r)/d + 2; break;
+            default: h = (r-g)/d + 4;
+        }
+        h *= 60;
+    }
+    return { h, s, l };
+}
+
+function hslToRgb(h, s, l) {
+    const c = (1 - Math.abs(2*l - 1)) * s;
+    const hp = h / 60; const x = c * (1 - Math.abs((hp % 2) - 1));
+    let r1=0,g1=0,b1=0;
+    if (hp>=0&&hp<1) { r1=c; g1=x; }
+    else if (hp<2) { r1=x; g1=c; }
+    else if (hp<3) { g1=c; b1=x; }
+    else if (hp<4) { g1=x; b1=c; }
+    else if (hp<5) { r1=x; b1=c; }
+    else { r1=c; b1=x; }
+    const m = l - c/2;
+    return { r: Math.round((r1+m)*255), g: Math.round((g1+m)*255), b: Math.round((b1+m)*255) };
 }
 
 // Force landscape orientation on mobile

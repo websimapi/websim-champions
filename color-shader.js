@@ -137,8 +137,12 @@ function selectiveRecolorValkyrie(img, targetHue) {
                 for (let i = 0; i < p.length; i += 4) {
                     const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
                     if (a < 5) continue;
+                    
+                    const pixelIndex = i / 4;
+                    const y = Math.floor(pixelIndex / c.width);
+
                     const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
-                    if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b)) {
+                    if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b, y, c.height)) {
                         let h = (hsl.h + shift) % 360; 
                         let s = hsl.s, l = hsl.l;
                         const rgb = hslToRgb(h, s, l);
@@ -176,16 +180,17 @@ function isBluish(h, s, l, r, g, b) {
     return ((hueOK && satOK && lightOK) || chromaOK || darkBlueGuard);
 }
 
-function isReddish(h, s, l, r, g, b) {
+function isReddish(h, s, l, r, g, b, y, imageHeight) {
     // Skin Tone Guard: Exclude pixels that fall within typical skin tone ranges.
-    // Skin tones are usually in the orange-to-red hue range (e.g., 15-45), with
-    // specific saturation and lightness. This is a more restrictive check to avoid
-    // excluding reddish browns found on clothing/armor.
-    // The previous check was (h >= 15 && h <= 45) && (s >= 0.2 && s <= 0.7) && (l >= 0.3 && l <= 0.9);
-    // This was too broad and caught colors on the cape.
-    const isSkinTone = (h >= 18 && h <= 40) && (s >= 0.25 && s <= 0.85) && (l >= 0.4 && l < 0.9);
-    if (isSkinTone) {
-        return false;
+    // Skin tones are usually in the orange-to-red hue range (15-45), with
+    // moderate saturation (0.2-0.7) and lightness (0.3-0.9).
+    // We only apply this guard to the top 60% of the image to protect the face/arms.
+    const isUpperBody = y < imageHeight * 0.6;
+    if (isUpperBody) {
+        const isSkinTone = (h >= 15 && h <= 45) && (s >= 0.2 && s <= 0.7) && (l >= 0.3 && l <= 0.9);
+        if (isSkinTone) {
+            return false;
+        }
     }
 
     // Hue check: Target reds, magentas, and oranges near red.
@@ -199,7 +204,11 @@ function isReddish(h, s, l, r, g, b) {
     // Special guard for dark, less saturated reds.
     const darkRedGuard = (r > g && r > b) && (r >= 30) && l < 0.40 && s > 0.1;
 
-    return (hueOK && satOK && lightOK && chromaOK) || darkRedGuard;
+    // A specific check to include brownish-reds like the cape highlights (#AE734C)
+    // h=24, s=0.39, l=0.49
+    const isCapeBrown = (h >= 20 && h <= 28) && (s >= 0.35 && s <= 0.5) && (l >= 0.4 && l < 0.6);
+    
+    return (hueOK && satOK && lightOK && chromaOK) || darkRedGuard || isCapeBrown;
 }
 
 function isGreenish(h, s, l, r, g, b) {

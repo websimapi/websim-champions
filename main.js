@@ -190,12 +190,13 @@ function selectiveRecolorArcher(img, targetHue) {
 
 function isGreenish(h, s, l, r, g, b) {
     const d = Math.abs(h - 120); const hueDist = Math.min(d, 360 - d);
-    const hueOK = hueDist <= 40; // generous cone around green
+    const hueOK = hueDist <= 65;
     const greenDominance = g - Math.max(r, b);
-    const chromaOK = greenDominance > 10; // RGB dominance guard
-    const satOK = s > 0.18;
-    const lightOK = l > 0.10 && l < 0.92;
-    return (hueOK && satOK && lightOK) || (chromaOK && l < 0.85);
+    const chromaOK = greenDominance > 5;
+    const satOK = s > 0.10;
+    const lightOK = l > 0.06 && l < 0.92;
+    const darkGreenGuard = (g > r && g > b) && (g >= 28) && l < 0.35;
+    return ((hueOK && satOK && lightOK) || chromaOK || darkGreenGuard);
 }
 
 function rgbToHsl(r, g, b) {

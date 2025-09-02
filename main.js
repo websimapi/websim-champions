@@ -6,6 +6,39 @@ const characters = [
     { name: 'Valkyrie', img: '/character4.png', baseHue: 0, stats: { strength: 7, speed: 7, magic: 6, armour: 6 } }
 ];
 
+// WebAudio setup
+let audioContext;
+let stoneShiftBuffer;
+
+// Function to load a sound
+async function loadSound(url) {
+    if (!audioContext) return null;
+    try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        return audioBuffer;
+    } catch (error) {
+        console.error(`Error loading sound: ${url}`, error);
+        return null;
+    }
+}
+
+// Function to play a sound
+function playSound(buffer) {
+    if (!audioContext || !buffer) return;
+
+    // Resume AudioContext if it's in a suspended state (required by browser autoplay policies)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+}
+
 const slotColors = {
     blue: 240,
     green: 120,
@@ -15,11 +48,9 @@ const slotColors = {
 
 // Update a character slot with new character data
 function updateCharacterSlot(slot, character) {
-    const sourceImg = slot.querySelector('.character-image-source');
-    sourceImg.src = character.img;
-    sourceImg.alt = character.name;
-    sourceImg.dataset.baseHue = character.baseHue;
-
+    slot.querySelector('.character-image').src = character.img;
+    slot.querySelector('.character-image').alt = character.name;
+    slot.querySelector('.character-image').dataset.baseHue = character.baseHue;
     slot.querySelector('.stat-label').textContent = character.name;
     slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
     slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
@@ -29,124 +60,15 @@ function updateCharacterSlot(slot, character) {
     applyColorShader(slot);
 }
 
-// Color utility functions
-function rgbToHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max === min) {
-        h = s = 0;
-    } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-    return [h, s, l];
-}
-
-function hslToRgb(h, s, l) {
-    let r, g, b;
-    if (s === 0) {
-        r = g = b = l;
-    } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1 / 3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1 / 3);
-    }
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
-function isProtectedColor(r, g, b) {
-    const [h, s, l] = rgbToHsl(r, g, b);
-    // Protect grays, whites, blacks (low saturation)
-    if (s < 0.20) return true;
-    // Protect browns, tans, skin tones
-    const hue = h * 360;
-    if (hue >= 10 && hue <= 50 && s < 0.7) {
-        return true;
-    }
-    return false;
-}
-
 // Apply CSS filter to shift image color
 function applyColorShader(slot) {
-    const sourceImg = slot.querySelector('.character-image-source');
-    const canvas = slot.querySelector('.character-image');
-    const ctx = canvas.getContext('2d');
-
+    const image = slot.querySelector('.character-image');
     const slotColorName = slot.dataset.color;
     const targetHue = slotColors[slotColorName];
-    const baseHue = parseInt(sourceImg.dataset.baseHue, 10);
-    const hueShift = (targetHue - baseHue);
+    const baseHue = parseInt(image.dataset.baseHue, 10);
+    const hueShift = targetHue - baseHue;
 
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = sourceImg.src;
-
-    img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            const a = data[i + 3];
-
-            if (a > 0) {
-                let [h, s, l] = rgbToHsl(r, g, b);
-                const pixelHue = h * 360;
-
-                // Condition 1: Protect grays, whites, blacks, and very dark/light colors
-                if (s < 0.25 || l < 0.15 || l > 0.9) {
-                    continue;
-                }
-
-                // Condition 2: Protect browns, tans, and skin tones explicitly
-                if (pixelHue >= 15 && pixelHue <= 50 && s < 0.75) {
-                    continue;
-                }
-
-                // Condition 3: Only shift colors close to the original character's base hue
-                const hueDiff = Math.min(Math.abs(pixelHue - baseHue), 360 - Math.abs(pixelHue - baseHue));
-                const hueThreshold = 45; // How far from the base hue we should look for colors to change
-
-                if (hueDiff <= hueThreshold) {
-                    let newHue = (pixelHue + hueShift);
-                    // Ensure hue wraps around correctly
-                    newHue = (newHue + 360) % 360; 
-
-                    const [newR, newG, newB] = hslToRgb(newHue / 360, s, l);
-                    data[i] = newR;
-                    data[i + 1] = newG;
-                    data[i + 2] = newB;
-                }
-            }
-        }
-        ctx.putImageData(imageData, 0, 0);
-    };
-     if (sourceImg.complete && sourceImg.naturalHeight !== 0) {
-        img.onload();
-    }
+    image.style.filter = `hue-rotate(${hueShift}deg)`;
 }
 
 // Force landscape orientation on mobile
@@ -247,6 +169,7 @@ function initializeCharacterSelection() {
         const rightArrow = slot.querySelector('.right-arrow');
 
         leftArrow.addEventListener('click', () => {
+            playSound(stoneShiftBuffer);
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex - 1 + characters.length) % characters.length;
             slot.dataset.characterIndex = currentIndex;
@@ -254,6 +177,7 @@ function initializeCharacterSelection() {
         });
 
         rightArrow.addEventListener('click', () => {
+            playSound(stoneShiftBuffer);
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex + 1) % characters.length;
             slot.dataset.characterIndex = currentIndex;
@@ -263,7 +187,15 @@ function initializeCharacterSelection() {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     forceLandscape();
     initializeCharacterSelection();
+
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // Preload the sound effect
+        stoneShiftBuffer = await loadSound('stone_shift.mp3');
+    } catch (e) {
+        console.error("Web Audio API is not supported in this browser or the sound failed to load.", e);
+    }
 });

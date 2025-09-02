@@ -5,6 +5,7 @@ function forceLandscape() {
     if (isMobile) {
         // Add class for mobile-specific styling
         document.body.classList.add('mobile');
+        document.body.classList.add('landscape-view'); // Add class for unified landscape styling
         
         // Hide orientation message permanently, we will force the layout
         const message = document.getElementById('orientation-message');

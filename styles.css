@@ -537,31 +537,31 @@ body {
 }
 
 /* Specific styles for landscape on mobile where height is constrained */
-@media (orientation: landscape) and (max-height: 500px) {
-    .title {
-        font-size: 2rem;
-        margin-top: 0;
-        margin-bottom: 0.25rem;
-    }
-    .character-selection {
-        padding: 5px 0;
-        justify-content: flex-start;
-    }
-    .character-image {
-        top: 2%;
-        height: 65%;
-    }
-    .character-stats .stat-label {
-        font-size: 1.1rem;
-        padding: 1px 8px;
-    }
-    .character-name-container {
-        width: 95%;
-        max-width: 180px;
-    }
-    .select-character-text {
-        font-size: 0.9rem;
-    }
+@media (max-height: 500px) {
+  .landscape-view .title {
+    font-size: 2rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+  }
+  .landscape-view .character-selection {
+    padding: 5px 0;
+    justify-content: flex-start;
+  }
+  .landscape-view .character-image {
+    top: 2%;
+    height: 65%;
+  }
+  .landscape-view .character-stats .stat-label {
+    font-size: 1.1rem;
+    padding: 1px 8px;
+  }
+  .landscape-view .character-name-container {
+    width: 95%;
+    max-width: 180px;
+  }
+  .landscape-view .select-character-text {
+    font-size: 0.9rem;
+  }
 }
 
 body.force-landscape {

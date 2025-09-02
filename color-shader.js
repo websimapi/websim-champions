@@ -138,25 +138,21 @@ function selectiveRecolorValkyrie(img, targetHue) {
                     const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
                     if (a < 5) continue;
                     
+                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
+
                     // --- Artifact Removal Logic ---
                     // If a pixel is very bright (near white) and has very low saturation,
                     // consider it an artifact and make it transparent.
-                    const lightness = (Math.max(r, g, b) + Math.min(r, g, b)) / 510; // 0-1 range
-                    if (lightness > 0.95) { // Threshold for "very bright"
-                        const saturation = lightness > 0 && lightness < 1 
-                            ? (Math.max(r, g, b) - Math.min(r, g, b)) / (1 - Math.abs(2 * lightness - 1)) / 255 
-                            : 0;
-                        if (saturation < 0.1) { // Threshold for "very low saturation"
-                             p[i+3] = 0; // Set alpha to 0 (fully transparent)
-                             continue;   // Skip further processing for this pixel
-                        }
+                    // Lowered lightness threshold and increased saturation threshold to catch more artifacts.
+                    if (hsl.l > 0.92 && hsl.s < 0.2) {
+                         p[i+3] = 0; // Set alpha to 0 (fully transparent)
+                         continue;   // Skip further processing for this pixel
                     }
                     // --- End Artifact Removal ---
                     
                     const pixelIndex = i / 4;
                     const y = Math.floor(pixelIndex / c.width);
 
-                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
                     if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b, y, c.height)) {
                         let h = (hsl.h + shift) % 360; 
                         let s = hsl.s, l = hsl.l;

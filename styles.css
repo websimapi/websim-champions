@@ -104,33 +104,6 @@ body {
     transform: none; /* remove grow-on-tap effect */
 }
 
-.character-slot.empty-slot .character-frame {
-    background: rgba(10, 10, 20, 0.5);
-    border-color: rgba(128, 128, 128, 0.5);
-    justify-content: center;
-    align-items: center;
-}
-
-.empty-skull {
-    opacity: 0.2;
-    object-fit: contain;
-    width: 60% !important;
-    height: 60% !important;
-    object-position: center;
-    position: relative !important;
-    transform: none !important;
-    animation: none !important;
-}
-
-.empty-slot-text {
-    position: absolute;
-    bottom: 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-}
-
 .character-frame {
     position: relative;
     width: 100%;
@@ -493,151 +466,12 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .start-prompt {
     font-size: 1.5rem;
     opacity: 0.8;
-}
-
-.start-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-}
-
-.start-btn {
-    font-family: 'Cinzel', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #ffd700;
-    border-radius: 8px;
-    padding: 10px 30px;
-    cursor: var(--relic-cursor);
-    transition: all 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-}
-
-.start-btn:hover:not(:disabled) {
-    background: #ffd700;
-    color: #000;
-}
-
-.start-btn:disabled {
-    border-color: #888;
-    color: #888;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-#qr-code-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 8px;
-    z-index: 50;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-
-#qr-code-container.hidden {
-    display: none;
-}
-
-#qr-code-container p {
-    color: #000;
-    font-weight: 600;
-    margin-top: 5px;
-    font-size: 0.9rem;
-}
-
-#qr-code canvas, #qr-code img {
-    display: block !important; /* Override default from library */
-    margin: 0 auto;
-}
-
-#qr-scanner-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#qr-scanner-container.hidden {
-    display: none;
-}
-
-#qr-reader {
-    width: 80vw;
-    max-width: 500px;
-    border: 4px solid #ffd700;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-#close-scanner-btn {
-    margin-top: 20px;
-    font-family: 'Cinzel', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #fff;
-    border-radius: 8px;
-    padding: 10px 30px;
-    cursor: var(--relic-cursor);
-    transition: all 0.2s ease;
-}
-
-#close-scanner-btn:hover {
-    background: #fff;
-    color: #000;
-}
-
-#custom-cursor {
-    position: fixed; width: 32px; height: 32px;
-    background: url('/relic_cursor.png') no-repeat center/contain;
-    pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
-    opacity: 0; transition: opacity .15s ease;
-}
-
-#custom-cursor::after {
-    content: ""; position: absolute; left: 50%; top: 50%;
-    width: 16px; height: 16px; transform: translate(-50%, calc(-50% + 3px));
-    border-radius: 50%; opacity: 0; transition: opacity .12s ease;
-    background:
-      conic-gradient(from 0deg, rgba(102,199,255,0.0) 0 60deg, rgba(102,199,255,0.25) 90deg, rgba(102,199,255,0.0) 120deg),
-      radial-gradient(circle, rgba(102,199,255,0.55) 0%, rgba(102,199,255,0.35) 55%, rgba(102,199,255,0.0) 80%);
-    background-blend-mode: screen;
-    filter: drop-shadow(0 0 6px rgba(102,199,255,0.6));
-}
-
-#custom-cursor.active::after { opacity: 1; animation: cursorGlowSpiral 2.4s linear infinite; }
-
-#custom-cursor.cooldown::after {
-    background:
-      conic-gradient(from 0deg, rgba(180,180,180,0.0) 0 60deg, rgba(180,180,180,0.28) 90deg, rgba(180,180,180,0.0) 120deg),
-      radial-gradient(circle, rgba(200,200,200,0.55) 0%, rgba(180,180,180,0.35) 55%, rgba(180,180,180,0.0) 80%);
-    filter: drop-shadow(0 0 10px rgba(180,180,180,0.7));
-}
-
-@keyframes cursorGlowSpiral {
-  0%   { transform: translate(-50%, calc(-50% + 3px)) rotate(0deg);   filter: drop-shadow(0 0 10px rgba(102,199,255,0.95)); }
-  50%  { transform: translate(-50%, calc(-50% + 3px)) rotate(180deg); filter: drop-shadow(0 0 22px rgba(102,199,255,1)); }
-  100% { transform: translate(-50%, calc(-50% + 3px)) rotate(360deg); filter: drop-shadow(0 0 14px rgba(102,199,255,0.98)); }
 }
 
 /* Mobile landscape optimizations */
@@ -719,4 +553,178 @@ body {
     .character-stats div {
         font-size: 0.6rem;
     }
+}
+
+#custom-cursor {
+    position: fixed; width: 32px; height: 32px;
+    background: url('/relic_cursor.png') no-repeat center/contain;
+    pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
+    opacity: 0; transition: opacity .15s ease;
+}
+
+#custom-cursor::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 16px; height: 16px; transform: translate(-50%, calc(-50% + 3px));
+    border-radius: 50%; opacity: 0; transition: opacity .12s ease;
+    background:
+      conic-gradient(from 0deg, rgba(102,199,255,0.0) 0 60deg, rgba(102,199,255,0.25) 90deg, rgba(102,199,255,0.0) 120deg),
+      radial-gradient(circle, rgba(102,199,255,0.55) 0%, rgba(102,199,255,0.35) 55%, rgba(102,199,255,0.0) 80%);
+    background-blend-mode: screen;
+    filter: drop-shadow(0 0 6px rgba(102,199,255,0.6));
+}
+
+#custom-cursor.active::after { opacity: 1; animation: cursorGlowSpiral 2.4s linear infinite; }
+
+#custom-cursor.cooldown::after {
+    background:
+      conic-gradient(from 0deg, rgba(180,180,180,0.0) 0 60deg, rgba(180,180,180,0.28) 90deg, rgba(180,180,180,0.0) 120deg),
+      radial-gradient(circle, rgba(200,200,200,0.55) 0%, rgba(180,180,180,0.35) 55%, rgba(180,180,180,0.0) 80%);
+    filter: drop-shadow(0 0 10px rgba(180,180,180,0.7));
+}
+
+@keyframes cursorGlowSpiral {
+  0%   { transform: translate(-50%, calc(-50% + 3px)) rotate(0deg);   filter: drop-shadow(0 0 10px rgba(102,199,255,0.95)); }
+  50%  { transform: translate(-50%, calc(-50% + 3px)) rotate(180deg); filter: drop-shadow(0 0 22px rgba(102,199,255,1)); }
+  100% { transform: translate(-50%, calc(-50% + 3px)) rotate(360deg); filter: drop-shadow(0 0 14px rgba(102,199,255,0.98)); }
+}
+
+.game-mode-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.scan-to-play-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mode-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: var(--relic-cursor);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.mode-btn:hover:not(.disabled) {
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.mode-btn.disabled {
+    border-color: #666;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.qr-container {
+    text-align: center;
+}
+
+.qr-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+}
+
+.mode-description {
+    font-size: 0.9rem;
+    opacity: 0.6;
+    margin-top: -1rem;
+}
+
+.host-qr-mini {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 50;
+    display: none;
+}
+
+.host-qr-mini.visible {
+    display: block;
+}
+
+.host-qr-mini canvas {
+    width: 80px !important;
+    height: 80px !important;
+}
+
+.camera-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    transition: opacity 0.3s ease;
+}
+
+.camera-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.camera-content {
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.camera-content h3 {
+    margin-bottom: 1rem;
+    font-family: 'Cinzel', serif;
+}
+
+#camera-video {
+    max-width: 90vw;
+    max-height: 60vh;
+    border-radius: 8px;
+}
+
+.close-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: var(--relic-cursor);
+    z-index: 1;
+}
+
+.character-slot.empty .character-image-wrapper {
+    background: url('/skull.png') center/contain no-repeat;
+    opacity: 0.3;
+}
+
+.character-slot.empty .character-image {
+    opacity: 0;
+}
+
+.character-slot.empty .select-character-text {
+    opacity: 0.5;
 }

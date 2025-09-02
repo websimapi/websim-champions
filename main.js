@@ -46,24 +46,73 @@ const slotColors = {
     red: 0
 };
 
-// Update a character slot with new character data
-function updateCharacterSlot(slot, character) {
-    slot.querySelector('.character-image').src = character.img;
-    slot.querySelector('.character-image').alt = character.name;
-    slot.querySelector('.character-image').dataset.baseHue = character.baseHue;
-    slot.querySelector('.stat-label').textContent = character.name;
-    slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
-    slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
-    slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
-    slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
+const ANIMATION_DURATION = 500; // ms
 
-    applyColorShader(slot);
+// Update a character slot with new character data
+function updateCharacterSlot(slot, character, direction) {
+    const imageWrapper = slot.querySelector('.character-image-wrapper');
+    const oldImage = imageWrapper.querySelector('.character-image');
+    const statsContainer = slot.querySelector('.character-stats');
+    const arrows = slot.querySelectorAll('.arrow');
+
+    // Disable arrows during animation
+    arrows.forEach(arrow => arrow.disabled = true);
+    
+    // Create new image
+    const newImage = document.createElement('img');
+    newImage.src = character.img;
+    newImage.alt = character.name;
+    newImage.className = 'character-image';
+    newImage.dataset.baseHue = character.baseHue;
+    
+    // Position new image for entry animation
+    newImage.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
+    imageWrapper.appendChild(newImage);
+
+    // Apply color shader to new image immediately
+    applyColorShaderToImage(newImage, slot.dataset.color);
+
+    // Animate old image out and stats fade
+    oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+    statsContainer.classList.add('fade-out');
+
+    // Play sound
+    playSound(stoneShiftBuffer);
+
+    // After half the animation, update the text content
+    setTimeout(() => {
+        slot.querySelector('.stat-label').textContent = character.name;
+        slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
+        slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
+        slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
+        slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
+        
+        // Start fading stats back in
+        statsContainer.classList.remove('fade-out');
+        statsContainer.classList.add('fade-in');
+    }, ANIMATION_DURATION / 2);
+
+
+    // After animation is complete, clean up
+    setTimeout(() => {
+        oldImage.remove();
+        newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
+        statsContainer.classList.remove('fade-in');
+        
+        // Re-enable arrows
+        arrows.forEach(arrow => arrow.disabled = false);
+    }, ANIMATION_DURATION);
 }
 
 // Apply CSS filter to shift image color
 function applyColorShader(slot) {
     const image = slot.querySelector('.character-image');
     const slotColorName = slot.dataset.color;
+    applyColorShaderToImage(image, slotColorName);
+}
+
+function applyColorShaderToImage(image, slotColorName) {
+    if (!image) return;
     const targetHue = slotColors[slotColorName];
     const baseHue = parseInt(image.dataset.baseHue, 10);
     const hueShift = targetHue - baseHue;
@@ -169,19 +218,17 @@ function initializeCharacterSelection() {
         const rightArrow = slot.querySelector('.right-arrow');
 
         leftArrow.addEventListener('click', () => {
-            playSound(stoneShiftBuffer);
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex - 1 + characters.length) % characters.length;
             slot.dataset.characterIndex = currentIndex;
-            updateCharacterSlot(slot, characters[currentIndex]);
+            updateCharacterSlot(slot, characters[currentIndex], 'left');
         });
 
         rightArrow.addEventListener('click', () => {
-            playSound(stoneShiftBuffer);
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex + 1) % characters.length;
             slot.dataset.characterIndex = currentIndex;
-            updateCharacterSlot(slot, characters[currentIndex]);
+            updateCharacterSlot(slot, characters[currentIndex], 'right');
         });
     });
 }

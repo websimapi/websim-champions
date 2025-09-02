@@ -11,6 +11,8 @@ let audioContext;
 let stoneShiftBuffer;
 let backgroundMusicBuffer;
 let isMusicPlaying = false;
+// Debug flag for cursor region outline
+let relicCursorDebug = false;
 
 // Function to load a sound
 async function loadSound(url) {
@@ -320,14 +322,14 @@ function initializeRelicCursor() {
             document.body.appendChild(cursor);
         }
         let region = document.getElementById('cursor-region'); if (!region){ region = document.createElement('div'); region.id='cursor-region'; document.body.appendChild(region); }
-        const show = () => { cursor.style.opacity = '1'; region.style.opacity = '1'; };
+        const show = () => { cursor.style.opacity = '1'; region.style.opacity = relicCursorDebug ? '1' : '0'; };
         const hide = () => { cursor.style.opacity = '0'; region.style.opacity = '0'; };
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
             region.style.left = e.clientX + 'px';
             region.style.top = e.clientY + 'px';
-            show();
+            cursor.style.opacity = '1'; region.style.opacity = relicCursorDebug ? '1' : '0';
         });
         window.addEventListener('mouseenter', show);
         window.addEventListener('mouseleave', hide);
@@ -344,14 +346,25 @@ function initializeRelicCursor() {
 }
 
 function initializeClickAssist() {
-    const selectors = ['.arrow', '.character-slot', '#start-overlay'];
-    const steps = [-16, 0, 16];
+    const priority = ['.arrow', '#start-overlay', '.character-slot'];
+    const range = 16, step = 8;
     document.addEventListener('pointerup', (e) => {
-        if (selectors.some(s => e.target.closest(s))) return;
-        for (let dx of steps) for (let dy of steps) {
-            const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
-            const hit = el && el.closest(selectors.join(','));
-            if (hit) { hit.click(); return; }
+        // If we already clicked a priority element, let it be.
+        if (priority.some(sel => e.target.closest(sel))) return;
+        // Search around pointer, prioritizing arrows
+        for (let dy = 0; dy <= range; dy += step) {
+            for (let dx of [0, dy, -dy]) {
+                const candidates = [
+                    document.elementFromPoint(e.clientX + dx, e.clientY + dy),
+                    document.elementFromPoint(e.clientX + dx, e.clientY - dy)
+                ].filter(Boolean);
+                for (const el of candidates) {
+                    for (const sel of priority) {
+                        const hit = el.closest(sel);
+                        if (hit) { hit.click(); return; }
+                    }
+                }
+            }
         }
     }, true);
 }
@@ -363,4 +376,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStartOverlay();
     initializeRelicCursor();
     initializeClickAssist();
+});
+
+/* Toggle debug outline for cursor region with Shift+` (~) */
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Backquote' && e.shiftKey) {
+        relicCursorDebug = !relicCursorDebug;
+        const region = document.getElementById('cursor-region');
+        if (region) region.style.opacity = relicCursorDebug ? '1' : '0';
+        console.info('[RelicCursor] Debug mode:', relicCursorDebug ? 'ON' : 'OFF');
+    }
 });

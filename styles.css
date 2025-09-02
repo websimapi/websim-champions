@@ -17,6 +17,11 @@ body {
     color: #ffffff;
     height: 100vh;
     overflow: hidden;
+    cursor: url('/relic_cursor.png') 12 12, auto;
+}
+
+@media (pointer: coarse) {
+    body { cursor: auto; }
 }
 
 .character-selection {

@@ -227,13 +227,12 @@ body {
 .character-name-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border: 2px solid;
+    justify-content: center; /* Changed from space-between for better centering of contents */
     padding: 2px;
     border-radius: 6px;
     background: rgba(0,0,0,0.4);
     margin: 0 auto 4px;
-    width: 90%;
+    width: fit-content; /* Changed from 90% */
     max-width: 200px;
 }
 

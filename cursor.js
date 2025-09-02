@@ -19,7 +19,7 @@ function initializeRelicCursor() {
             cursor.id = 'custom-cursor';
             document.body.appendChild(cursor);
         }
-        const INTERACTIVE_SELECTOR = '.arrow';
+        const INTERACTIVE_SELECTOR = '.arrow, .gender-toggle';
         const show = () => (cursor.style.opacity = '1');
         const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); cursor.classList.remove('cooldown'); };
         let lastPos = { x: 0, y: 0, has: false };

@@ -26,21 +26,23 @@ function updateCharacterSlot(slot, character, direction) {
     const arrows = slot.querySelectorAll('.arrow');
     const nameText = slot.querySelector('.character-name-text');
     const color = slot.dataset.color;
-    const genderToggle = slot.querySelector('.gender-toggle-container');
+    const genderToggleContainer = slot.querySelector('.gender-toggle-container');
+    const genderToggles = slot.querySelectorAll('.gender-toggle');
 
     // Handle gendered characters
     let characterImgSrc;
     if (character.genders) {
         const gender = slot.dataset.archerGender || 'male';
         characterImgSrc = character.genders[gender].img;
-        genderToggle.style.visibility = 'visible';
+        genderToggleContainer.style.visibility = 'visible';
     } else {
         characterImgSrc = character.img;
-        genderToggle.style.visibility = 'hidden';
+        genderToggleContainer.style.visibility = 'hidden';
     }
 
-    // Disable arrows during animation
+    // Disable controls during animation
     arrows.forEach(arrow => arrow.disabled = true);
+    genderToggles.forEach(toggle => toggle.disabled = true);
     document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
     
     // Fade out name
@@ -85,8 +87,9 @@ function updateCharacterSlot(slot, character, direction) {
         slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
         slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
         
-        // Re-enable arrows
+        // Re-enable controls
         arrows.forEach(arrow => arrow.disabled = false);
+        genderToggles.forEach(toggle => toggle.disabled = false);
         document.dispatchEvent(new CustomEvent('relic-cursor-refresh'));
     }, ANIMATION_DURATION);
 

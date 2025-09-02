@@ -53,13 +53,13 @@ function updateCharacterSlot(slot, character, direction) {
     const imageWrapper = slot.querySelector('.character-image-wrapper');
     const oldImage = imageWrapper.querySelector('.character-image');
     const arrows = slot.querySelectorAll('.arrow');
-    const statLabel = slot.querySelector('.stat-label');
+    const nameText = slot.querySelector('.character-name-text');
 
     // Disable arrows during animation
     arrows.forEach(arrow => arrow.disabled = true);
     
     // Fade out name
-    statLabel.classList.add('fade-out');
+    nameText.classList.add('fade-out');
 
     // Create new image
     const newImage = document.createElement('img');
@@ -98,8 +98,8 @@ function updateCharacterSlot(slot, character, direction) {
 
     // Halfway through the animation, change the name and fade it in
     setTimeout(() => {
-        statLabel.textContent = character.name;
-        statLabel.classList.remove('fade-out');
+        nameText.textContent = character.name;
+        nameText.classList.remove('fade-out');
     }, ANIMATION_DURATION / 2);
 }
 

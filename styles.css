@@ -197,10 +197,18 @@ body {
     display: inline-block;
     flex-grow: 1;
     white-space: nowrap;
-    transition: opacity 0.25s ease-in-out;
 }
 
 .character-stats .stat-label.fade-out {
+    opacity: 0;
+}
+
+.character-name-text {
+    display: inline-block; /* Or block, depending on desired layout inside */
+    transition: opacity 0.25s ease-in-out;
+}
+
+.character-name-text.fade-out {
     opacity: 0;
 }
 

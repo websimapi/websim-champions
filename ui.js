@@ -1,5 +1,3 @@
-
-```
 // UI interaction management
 function initializeCharacterSelection() {
     const characterSlots = document.querySelectorAll('.character-slot');

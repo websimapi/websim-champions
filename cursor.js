@@ -1,5 +1,3 @@
-
-```
 // Custom cursor system
 function initializeRelicCursor() {
     const fine = window.matchMedia('(pointer: fine)').matches;

@@ -170,12 +170,12 @@ function selectiveRecolorArcher(img, targetHue) {
                 const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
                 if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
                     let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-                    if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.2); l = Math.max(0, Math.min(1, l * 0.78)); }
-                    else if (targetHue === 60) { h = 50; s = Math.min(1, s * 1.15); l = Math.max(0, Math.min(1, l * 1.05)); }
+                    if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
+                    else if (targetHue === 60) { h = 52; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
                     const rgb = hslToRgb(h, s, l);
-                    const rr = targetHue === 0 ? Math.min(255, rgb.r + 8)  : (targetHue === 60 ? Math.min(255, rgb.r + 18) : rgb.r);
-                    const gg = targetHue === 0 ? Math.max(0, rgb.g - 10) : (targetHue === 60 ? Math.max(0, rgb.g - 6)  : rgb.g);
-                    const bb = targetHue === 0 ? Math.max(0, rgb.b - 24) : (targetHue === 60 ? Math.max(0, rgb.b - 30) : rgb.b);
+                    const rr = targetHue === 0 ? Math.min(255, rgb.r + 8)  : (targetHue === 60 ? Math.min(255, rgb.r + 22) : rgb.r);
+                    const gg = targetHue === 0 ? Math.max(0, rgb.g - 10) : (targetHue === 60 ? Math.max(0, rgb.g - 4)  : rgb.g);
+                    const bb = targetHue === 0 ? Math.max(0, rgb.b - 24) : (targetHue === 60 ? Math.max(0, rgb.b - 36) : rgb.b);
                     p[i] = rr; p[i+1] = gg; p[i+2] = bb;
                 }
             }

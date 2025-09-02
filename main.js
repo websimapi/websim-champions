@@ -342,10 +342,11 @@ function initializeRelicCursor() {
 
 function initializeClickAssist() {
     const selectors = ['.arrow', '.character-slot', '#start-overlay'];
-    const steps = [-24, 0, 24];
+    const stepsX = [-24, 0, 24];
+    const stepsY = [-30, 0, 30];
     document.addEventListener('pointerup', (e) => {
         if (selectors.some(s => e.target.closest(s))) return;
-        for (let dx of steps) for (let dy of steps) {
+        for (let dx of stepsX) for (let dy of stepsY) {
             const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
             const hit = el && el.closest(selectors.join(','));
             if (hit) { hit.click(); return; }

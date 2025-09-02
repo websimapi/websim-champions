@@ -485,10 +485,15 @@ body {
 
 #custom-cursor::after {
     content: ""; position: absolute; left: 50%; top: 50%;
-    width: 14px; height: 14px; transform: translate(-50%, calc(-50% + 5px)); /* shift glow down by 5px */
+    width: 16px; height: 16px; transform: translate(-50%, calc(-50% + 3px));
     border-radius: 50%; opacity: 0; transition: opacity .12s ease;
     background: radial-gradient(circle, rgba(102,199,255,0.55) 0%, rgba(102,199,255,0.35) 55%, rgba(102,199,255,0.0) 80%);
     filter: drop-shadow(0 0 6px rgba(102,199,255,0.6));
 }
 
-#custom-cursor.active::after { opacity: 1; }
+#custom-cursor.active::after { opacity: 1; animation: cursorGlow 1.2s ease-in-out infinite; }
+
+@keyframes cursorGlow {
+  0% { transform: translate(-50%, calc(-50% + 3px)) scale(1); filter: drop-shadow(0 0 6px rgba(102,199,255,0.6)); }
+  100% { transform: translate(-50%, calc(-50% + 3px)) scale(1.12); filter: drop-shadow(0 0 12px rgba(102,199,255,0.9)); }
+}

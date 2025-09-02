@@ -321,6 +321,42 @@ body {
     max-width: 200px;
 }
 
+.gender-toggle-container {
+    height: 28px; /* Reserve space to prevent layout shift */
+    margin-top: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gender-toggle {
+    display: flex;
+    background: rgba(0,0,0,0.5);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.3);
+    overflow: hidden;
+    padding: 2px;
+}
+
+.gender-toggle button {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    padding: 2px 10px;
+    font-family: 'Cinzel', serif;
+    cursor: var(--relic-cursor);
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.gender-toggle button.active {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 12px;
+    text-shadow: 0 0 5px white;
+}
+
 .arrow {
     background: none;
     border: none;

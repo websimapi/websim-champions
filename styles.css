@@ -479,6 +479,16 @@ body {
 #custom-cursor {
     position: fixed; width: 32px; height: 32px;
     background: url('/relic_cursor.png') no-repeat center/contain;
-    pointer-events: none; z-index: 10000; transform: translate(-16px, -18px);
+    pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
     opacity: 0; transition: opacity .15s ease;
 }
+
+#custom-cursor::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 14px; height: 14px; transform: translate(-50%, -50%);
+    border-radius: 50%; opacity: 0; transition: opacity .12s ease;
+    background: radial-gradient(circle, rgba(102,199,255,0.55) 0%, rgba(102,199,255,0.35) 55%, rgba(102,199,255,0.0) 80%);
+    filter: drop-shadow(0 0 6px rgba(102,199,255,0.6));
+}
+
+#custom-cursor.active::after { opacity: 1; }

@@ -319,11 +319,14 @@ function initializeRelicCursor() {
             cursor.id = 'custom-cursor';
             document.body.appendChild(cursor);
         }
+        const INTERACTIVE_SELECTOR = 'button, [role="button"], .character-slot, #start-overlay, .arrow';
         const show = () => (cursor.style.opacity = '1');
-        const hide = () => (cursor.style.opacity = '0');
+        const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); };
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
+            const el = document.elementFromPoint(e.clientX, e.clientY);
+            cursor.classList.toggle('active', !!(el && el.closest(INTERACTIVE_SELECTOR)));
             show();
         });
         window.addEventListener('mouseenter', show);
@@ -340,25 +343,10 @@ function initializeRelicCursor() {
     img.src = '/relic_cursor.png';
 }
 
-function initializeClickAssist() {
-    const selectors = ['.arrow', '.character-slot', '#start-overlay'];
-    const stepsX = [-24, 0, 24];
-    const stepsY = [-48, -24, 0, 24, 48];
-     document.addEventListener('pointerup', (e) => {
-         if (selectors.some(s => e.target.closest(s))) return;
-         for (let dx of stepsX) for (let dy of stepsY) {
-             const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
-             const hit = el && el.closest(selectors.join(','));
-             if (hit) { hit.click(); return; }
-         }
-     }, true);
-}
-
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
     initializeCharacterSelection();
     initializeStartOverlay();
     initializeRelicCursor();
-    initializeClickAssist();
 });

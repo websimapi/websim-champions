@@ -340,10 +340,24 @@ function initializeRelicCursor() {
     img.src = '/relic_cursor.png';
 }
 
+function initializeClickAssist() {
+    const selectors = ['.arrow', '.character-slot', '#start-overlay'];
+    const steps = [-16, 0, 16];
+    document.addEventListener('pointerup', (e) => {
+        if (selectors.some(s => e.target.closest(s))) return;
+        for (let dx of steps) for (let dy of steps) {
+            const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
+            const hit = el && el.closest(selectors.join(','));
+            if (hit) { hit.click(); return; }
+        }
+    }, true);
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
     initializeCharacterSelection();
     initializeStartOverlay();
     initializeRelicCursor();
+    initializeClickAssist();
 });

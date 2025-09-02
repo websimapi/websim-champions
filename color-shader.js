@@ -145,8 +145,24 @@ function selectiveRecolorValkyrie(img, targetHue) {
                     if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b, y, c.height)) {
                         let h = (hsl.h + shift) % 360; 
                         let s = hsl.s, l = hsl.l;
+
+                        if (targetHue === 60) { // Yellow - "light golden bright yellow"
+                            h = 50; // Nudge hue towards orange/gold, away from green
+                            s = Math.min(1, s * 1.25); // Increase saturation for brightness
+                            l = Math.min(1, l * 1.15); // Increase lightness
+                        }
+
                         const rgb = hslToRgb(h, s, l);
-                        p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
+                        let rr = rgb.r, gg = rgb.g, bb = rgb.b;
+
+                        if (targetHue === 60) {
+                            // Further tweak RGB to enhance the golden feel
+                            rr = Math.min(255, rgb.r + 15);
+                            gg = Math.max(0, rgb.g - 5);
+                            bb = Math.max(0, rgb.b - 30);
+                        }
+                        
+                        p[i] = rr; p[i+1] = gg; p[i+2] = bb;
                     }
                 }
                 x.putImageData(d, 0, 0);

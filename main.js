@@ -6,25 +6,6 @@ const characters = [
     { name: 'Valkyrie', img: '/character4.png', baseHue: 0, stats: { strength: 7, speed: 7, magic: 6, armour: 6 } }
 ];
 
-let preloadedImages = {};
-let imagesLoaded = false;
-let loadPromises = [];
-
-function preloadImages() {
-    characters.forEach(character => {
-        const img = new Image();
-        img.src = character.img;
-        preloadedImages[character.img] = img;
-        const promise = new Promise((resolve) => {
-            img.onload = resolve;
-        });
-        loadPromises.push(promise);
-    });
-    return Promise.all(loadPromises).then(() => {
-        imagesLoaded = true;
-    });
-}
-
 const slotColors = {
     blue: 240,
     green: 120,
@@ -34,21 +15,27 @@ const slotColors = {
 
 // Update a character slot with new character data
 function updateCharacterSlot(slot, character) {
+    const sourceImg = slot.querySelector('.character-image-source');
+    sourceImg.src = character.img;
+    sourceImg.alt = character.name;
+    sourceImg.dataset.baseHue = character.baseHue;
+
     slot.querySelector('.stat-label').textContent = character.name;
     slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
     slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
     slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
     slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
-    applyColorShader(slot, character);
+
+    applyColorShader(slot);
 }
 
-// Helper function to convert RGB to HSL
+// Color utility functions
 function rgbToHsl(r, g, b) {
-    r /= 255, g /= 255, b /= 255;
+    r /= 255; g /= 255; b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
     if (max === min) {
-        h = s = 0; // achromatic
+        h = s = 0;
     } else {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -59,14 +46,13 @@ function rgbToHsl(r, g, b) {
         }
         h /= 6;
     }
-    return [h * 360, s, l];
+    return [h, s, l];
 }
 
-// Helper function to convert HSL to RGB
 function hslToRgb(h, s, l) {
     let r, g, b;
     if (s === 0) {
-        r = g = b = l; // achromatic
+        r = g = b = l;
     } else {
         const hue2rgb = (p, q, t) => {
             if (t < 0) t += 1;
@@ -78,7 +64,6 @@ function hslToRgb(h, s, l) {
         };
         const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
         const p = 2 * l - q;
-        h /= 360;
         r = hue2rgb(p, q, h + 1 / 3);
         g = hue2rgb(p, q, h);
         b = hue2rgb(p, q, h - 1 / 3);
@@ -86,55 +71,63 @@ function hslToRgb(h, s, l) {
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
-// Apply CSS filter to shift image color
-function applyColorShader(slot, character) {
-    if (!imagesLoaded) return;
-
-    const canvas = slot.querySelector('.character-image');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const image = preloadedImages[character.img];
-
-    if (!image.complete) {
-        image.onload = () => applyColorShader(slot, character);
-        return;
+function isProtectedColor(r, g, b) {
+    const [h, s, l] = rgbToHsl(r, g, b);
+    // Protect grays, whites, blacks (low saturation)
+    if (s < 0.20) return true;
+    // Protect browns, tans, skin tones
+    const hue = h * 360;
+    if (hue >= 10 && hue <= 50 && s < 0.7) {
+        return true;
     }
+    return false;
+}
 
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    ctx.drawImage(image, 0, 0);
+// Apply CSS filter to shift image color
+function applyColorShader(slot) {
+    const sourceImg = slot.querySelector('.character-image-source');
+    const canvas = slot.querySelector('.character-image');
+    const ctx = canvas.getContext('2d');
 
     const slotColorName = slot.dataset.color;
     const targetHue = slotColors[slotColorName];
-    const baseHue = character.baseHue;
-    const hueShift = targetHue - baseHue;
-    
-    if (hueShift === 0) return; // No change needed
+    const baseHue = parseInt(sourceImg.dataset.baseHue, 10);
+    const hueShift = (targetHue - baseHue) / 360;
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const hueTolerance = 30; // degrees
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = sourceImg.src;
 
-    for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const alpha = data[i+3];
+    img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
-        if (alpha === 0) continue; // Skip transparent pixels
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
 
-        const [h, s, l] = rgbToHsl(r, g, b);
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
 
-        // Change only pixels that are close to the base hue and are not grayscale/white/black
-        const hueDistance = Math.min(Math.abs(h - baseHue), 360 - Math.abs(h - baseHue));
-        if (hueDistance < hueTolerance && s > 0.1 && l < 0.95 && l > 0.05) {
-            let newHue = (h + hueShift + 360) % 360;
-            const [newR, newG, newB] = hslToRgb(newHue, s, l);
-            data[i] = newR;
-            data[i + 1] = newG;
-            data[i + 2] = newB;
+            if (a > 0 && !isProtectedColor(r, g, b)) {
+                let [h, s, l] = rgbToHsl(r, g, b);
+                h += hueShift;
+                if (h > 1) h -= 1;
+                if (h < 0) h += 1;
+                const [newR, newG, newB] = hslToRgb(h, s, l);
+                data[i] = newR;
+                data[i + 1] = newG;
+                data[i + 2] = newB;
+            }
         }
+        ctx.putImageData(imageData, 0, 0);
+    };
+     if (sourceImg.complete && sourceImg.naturalHeight !== 0) {
+        img.onload();
     }
-    ctx.putImageData(imageData, 0, 0);
 }
 
 // Force landscape orientation on mobile
@@ -215,8 +208,7 @@ function initializeCharacterSelection() {
     
     characterSlots.forEach(slot => {
         // Initial color shader application
-        const initialCharacterIndex = parseInt(slot.dataset.characterIndex, 10);
-        updateCharacterSlot(slot, characters[initialCharacterIndex]);
+        applyColorShader(slot);
 
         slot.addEventListener('click', (e) => {
             // Don't trigger selection when clicking arrows
@@ -254,7 +246,5 @@ function initializeCharacterSelection() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
-    preloadImages().then(() => {
-        initializeCharacterSelection();
-    });
+    initializeCharacterSelection();
 });

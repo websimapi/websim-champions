@@ -23,6 +23,9 @@ function applyColorShaderToImage(image, slotColorName) {
     if (baseHue === 240) {
         return selectiveRecolorWarrior(image, targetHue);
     }
+    if (baseHue === 0) {
+        return selectiveRecolorValkyrie(image, targetHue);
+    }
     const hueShift = targetHue - baseHue;
     image.style.filter = `hue-rotate(${hueShift}deg)`;
     return Promise.resolve();
@@ -122,6 +125,45 @@ function selectiveRecolorArcher(img, targetHue) {
     });
 }
 
+function selectiveRecolorValkyrie(img, targetHue) {
+    const shift = targetHue; // base hue is 0
+    return new Promise((resolve) => {
+        const process = () => {
+            try {
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                x.drawImage(img, 0, 0);
+                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+                for (let i = 0; i < p.length; i += 4) {
+                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                    if (a < 5) continue;
+                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
+                    if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b)) {
+                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
+                        const rgb = hslToRgb(h, s, l);
+                        p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
+                    }
+                }
+                x.putImageData(d, 0, 0);
+                c.toBlob(blob => {
+                    if (!blob) { resolve(); return; }
+                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    const url = URL.createObjectURL(blob);
+                    img.dataset.blobUrl = url;
+                    img.style.filter = ''; img.src = url;
+                    console.info('[Valkyrie Recolor] Applied selective red shift -> hue', targetHue);
+                    resolve();
+                });
+            } catch (e) { 
+                console.warn('[Valkyrie Recolor] Fallback to CSS filter', e); 
+                img.style.filter = `hue-rotate(${targetHue}deg)`; 
+                resolve();
+            }
+        };
+        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+    });
+}
+
 function isBluish(h, s, l, r, g, b) {
     const d = Math.abs(h - 240); const hueDist = Math.min(d, 360 - d);
     const hueOK = hueDist <= 65;
@@ -142,6 +184,17 @@ function isGreenish(h, s, l, r, g, b) {
     const lightOK = l > 0.06 && l < 0.92;
     const darkGreenGuard = (g > r && g > b) && (g >= 28) && l < 0.35;
     return ((hueOK && satOK && lightOK) || chromaOK || darkGreenGuard);
+}
+
+function isReddish(h, s, l, r, g, b) {
+    const d = Math.abs(h - 0); const hueDist = Math.min(d, 360 - d);
+    const hueOK = hueDist <= 65;
+    const redDominance = r - Math.max(g, b);
+    const chromaOK = redDominance > 5;
+    const satOK = s > 0.10;
+    const lightOK = l > 0.06 && l < 0.92;
+    const darkRedGuard = (r > g && r > b) && (r >= 28) && l < 0.35;
+    return ((hueOK && satOK && lightOK) || chromaOK || darkRedGuard);
 }
 
 function rgbToHsl(r, g, b) {

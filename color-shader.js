@@ -177,6 +177,14 @@ function isBluish(h, s, l, r, g, b) {
 }
 
 function isReddish(h, s, l, r, g, b) {
+    // Skin Tone Guard: Exclude pixels that fall within typical skin tone ranges.
+    // Skin tones are usually in the orange-to-red hue range (15-45), with
+    // moderate saturation (0.2-0.7) and lightness (0.3-0.9).
+    const isSkinTone = (h >= 15 && h <= 45) && (s >= 0.2 && s <= 0.7) && (l >= 0.3 && l <= 0.9);
+    if (isSkinTone) {
+        return false;
+    }
+
     // Hue check: Target reds, magentas, and oranges near red.
     const hueOK = (h >= 335 || h <= 30);
     // Chroma check: Ensure red is the dominant color component.
@@ -187,6 +195,7 @@ function isReddish(h, s, l, r, g, b) {
     const lightOK = l > 0.08 && l < 0.95;
     // Special guard for dark, less saturated reds.
     const darkRedGuard = (r > g && r > b) && (r >= 30) && l < 0.40 && s > 0.1;
+
     return (hueOK && satOK && lightOK && chromaOK) || darkRedGuard;
 }
 

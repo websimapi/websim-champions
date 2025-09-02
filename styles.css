@@ -99,6 +99,22 @@ body {
     flex-direction: column;
 }
 
+.character-slot[data-color="blue"] .character-frame {
+    border-color: #4a9eff;
+}
+
+.character-slot[data-color="green"] .character-frame {
+    border-color: #4ade80;
+}
+
+.character-slot[data-color="yellow"] .character-frame {
+    border-color: #fbbf24;
+}
+
+.character-slot[data-color="red"] .character-frame {
+    border-color: #ef4444;
+}
+
 .select-character-text {
     position: absolute;
     top: 10px;

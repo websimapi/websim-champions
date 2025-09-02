@@ -79,6 +79,7 @@ const slotColors = {
 };
 
 const ANIMATION_DURATION = 500; // ms
+let preprocessPromise = null;
 
 // Update a character slot with new character data
 function updateCharacterSlot(slot, character, direction) {
@@ -145,52 +146,59 @@ function applyColorShader(slot) {
 }
 
 function applyColorShaderToImage(image, slotColorName) {
-    if (!image) return;
+    if (!image) return Promise.resolve();
     const targetHue = slotColors[slotColorName];
     const baseHue = parseInt(image.dataset.baseHue, 10);
-    if (baseHue === 120) { // Archer: selectively recolor only green regions
-        selectiveRecolorArcher(image, targetHue);
-        return;
+    if (baseHue === 120) { 
+        return selectiveRecolorArcher(image, targetHue);
     }
     const hueShift = targetHue - baseHue;
     image.style.filter = `hue-rotate(${hueShift}deg)`;
+    return Promise.resolve();
 }
 
 function selectiveRecolorArcher(img, targetHue) {
-    const shift = ((targetHue - 120) + 360) % 360; // shift from green
-    const process = () => {
-        try {
-            const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
-            c.width = img.naturalWidth; c.height = img.naturalHeight;
-            x.drawImage(img, 0, 0);
-            const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
-            for (let i = 0; i < p.length; i += 4) {
-                const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
-                if (a < 5) continue;
-                const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
-                if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
-                    let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-                    if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
-                    else if (targetHue === 60) { h = 52; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
-                    const rgb = hslToRgb(h, s, l);
-                    const rr = targetHue === 0 ? Math.min(255, rgb.r + 8)  : (targetHue === 60 ? Math.min(255, rgb.r + 22) : rgb.r);
-                    const gg = targetHue === 0 ? Math.max(0, rgb.g - 10) : (targetHue === 60 ? Math.max(0, rgb.g - 4)  : rgb.g);
-                    const bb = targetHue === 0 ? Math.max(0, rgb.b - 24) : (targetHue === 60 ? Math.max(0, rgb.b - 36) : rgb.b);
-                    p[i] = rr; p[i+1] = gg; p[i+2] = bb;
+    const shift = ((targetHue - 120) + 360) % 360;
+    return new Promise((resolve) => {
+        const process = () => {
+            try {
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                x.drawImage(img, 0, 0);
+                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+                for (let i = 0; i < p.length; i += 4) {
+                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                    if (a < 5) continue;
+                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
+                    if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
+                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
+                        if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
+                        else if (targetHue === 60) { h = 52; s = Math.min(1, s * 1.22); l = Math.max(0, Math.min(1, l * 1.12)); }
+                        const rgb = hslToRgb(h, s, l);
+                        const rr = targetHue === 0 ? Math.min(255, rgb.r + 8)  : (targetHue === 60 ? Math.min(255, rgb.r + 22) : rgb.r);
+                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 10) : (targetHue === 60 ? Math.max(0, rgb.g - 4)  : rgb.g);
+                        const bb = targetHue === 0 ? Math.max(0, rgb.b - 24) : (targetHue === 60 ? Math.max(0, rgb.b - 36) : rgb.b);
+                        p[i] = rr; p[i+1] = gg; p[i+2] = bb;
+                    }
                 }
+                x.putImageData(d, 0, 0);
+                c.toBlob(blob => {
+                    if (!blob) { resolve(); return; }
+                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    const url = URL.createObjectURL(blob);
+                    img.dataset.blobUrl = url;
+                    img.style.filter = ''; img.src = url;
+                    console.info('[Archer Recolor] Applied selective green shift -> hue', targetHue);
+                    resolve();
+                });
+            } catch (e) { 
+                console.warn('[Archer Recolor] Fallback to CSS filter', e); 
+                img.style.filter = `hue-rotate(${targetHue-120}deg)`; 
+                resolve();
             }
-            x.putImageData(d, 0, 0);
-            c.toBlob(blob => {
-                if (!blob) return;
-                if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
-                const url = URL.createObjectURL(blob);
-                img.dataset.blobUrl = url;
-                img.style.filter = ''; img.src = url;
-                console.info('[Archer Recolor] Applied selective green shift -> hue', targetHue);
-            });
-        } catch (e) { console.warn('[Archer Recolor] Fallback to CSS filter', e); img.style.filter = `hue-rotate(${targetHue-120}deg)`; }
-    };
-    if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+        };
+        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+    });
 }
 
 function isGreenish(h, s, l, r, g, b) {
@@ -341,6 +349,7 @@ function initializeStartOverlay() {
     const startOverlay = document.getElementById('start-overlay');
     
     startOverlay.addEventListener('click', async () => {
+        try { if (preprocessPromise) await preprocessPromise; } catch(_) {}
         startOverlay.classList.add('hidden');
 
         try {
@@ -425,10 +434,21 @@ function initializeRelicCursor() {
     img.src = '/relic_cursor.png';
 }
 
+function preprocessCharacters() {
+    const tasks = [];
+    document.querySelectorAll('.character-slot').forEach(slot => {
+        const img = slot.querySelector('.character-image');
+        const color = slot.dataset.color;
+        tasks.push(applyColorShaderToImage(img, color));
+    });
+    return Promise.all(tasks);
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
     initializeCharacterSelection();
+    preprocessPromise = preprocessCharacters();
     initializeStartOverlay();
     initializeRelicCursor();
 });

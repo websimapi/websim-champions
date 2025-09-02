@@ -1,17 +1,30 @@
-// Mobile and orientation handling
+// Mobile and touch handling
 function forceLandscape() {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
+        // Add class for mobile-specific styling
+        document.body.classList.add('mobile');
+        
+        // Add mobile-specific touch optimizations
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            var now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
         // Lock orientation to landscape if supported
         if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape').catch(() => {
                 console.log('Orientation lock not supported');
             });
         }
-        
-        // Add class for mobile-specific styling
-        document.body.classList.add('mobile');
         
         // Show orientation message if in portrait
         function checkOrientation() {

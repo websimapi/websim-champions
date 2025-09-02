@@ -11,8 +11,6 @@ let audioContext;
 let stoneShiftBuffer;
 let backgroundMusicBuffer;
 let isMusicPlaying = false;
-// Debug flag for cursor region outline
-let relicCursorDebug = false;
 
 // Function to load a sound
 async function loadSound(url) {
@@ -321,15 +319,12 @@ function initializeRelicCursor() {
             cursor.id = 'custom-cursor';
             document.body.appendChild(cursor);
         }
-        let region = document.getElementById('cursor-region'); if (!region){ region = document.createElement('div'); region.id='cursor-region'; document.body.appendChild(region); }
-        const show = () => { cursor.style.opacity = '1'; region.style.opacity = relicCursorDebug ? '1' : '0'; };
-        const hide = () => { cursor.style.opacity = '0'; region.style.opacity = '0'; };
+        const show = () => (cursor.style.opacity = '1');
+        const hide = () => (cursor.style.opacity = '0');
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
-            region.style.left = e.clientX + 'px';
-            region.style.top = e.clientY + 'px';
-            cursor.style.opacity = '1'; region.style.opacity = relicCursorDebug ? '1' : '0';
+            show();
         });
         window.addEventListener('mouseenter', show);
         window.addEventListener('mouseleave', hide);
@@ -346,22 +341,17 @@ function initializeRelicCursor() {
 }
 
 function initializeClickAssist() {
-    const priority = ['.arrow', '#start-overlay', '.character-slot'];
+    const selectors = ['.arrow', '.character-slot', '#start-overlay'];
+    const region = { left: -16, right: 16, top: -2, bottom: 30, step: 4 }; // align to 32x32 cursor with 2px top hotspot
     document.addEventListener('pointerup', (e) => {
-        if (priority.some(sel => e.target.closest(sel))) return;
-        const rect = { left: e.clientX - 16, top: e.clientY - 2, right: e.clientX + 16, bottom: e.clientY + 30 };
-        console.debug('[ClickAssist] scanning rect', rect);
-        for (let y = rect.top; y <= rect.bottom; y += 4) {
-            for (let x = rect.left; x <= rect.right; x += 4) {
-                const el = document.elementFromPoint(x, y);
-                if (!el) continue;
-                for (const sel of priority) {
-                    const hit = el.closest(sel);
-                    if (hit) { console.debug('[ClickAssist] hit', sel, hit); hit.click(); return; }
-                }
+        if (selectors.some(s => e.target.closest(s))) return;
+        for (let dy = region.top; dy <= region.bottom; dy += region.step) {
+            for (let dx = region.left; dx <= region.right; dx += region.step) {
+                const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
+                const hit = el && el.closest(selectors.join(','));
+                if (hit) { hit.click(); return; }
             }
         }
-        console.debug('[ClickAssist] no hit in region');
     }, true);
 }
 
@@ -372,14 +362,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStartOverlay();
     initializeRelicCursor();
     initializeClickAssist();
-});
-
-/* Toggle debug outline for cursor region with Shift+` (~) */
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Backquote' && e.shiftKey) {
-        relicCursorDebug = !relicCursorDebug;
-        const region = document.getElementById('cursor-region');
-        if (region) region.style.opacity = relicCursorDebug ? '1' : '0';
-        console.info('[RelicCursor] Debug mode:', relicCursorDebug ? 'ON' : 'OFF');
-    }
 });

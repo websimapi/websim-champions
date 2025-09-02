@@ -264,21 +264,44 @@ function initializeCharacterSelection() {
     });
 }
 
+// Set up the start overlay
+function initializeStartOverlay() {
+    const startOverlay = document.getElementById('start-overlay');
+    
+    startOverlay.addEventListener('click', async () => {
+        startOverlay.classList.add('hidden');
+
+        try {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Resume context if it was suspended
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            // Preload sounds now that we have user interaction
+            if (!stoneShiftBuffer) {
+                 stoneShiftBuffer = await loadSound('stone_shift.mp3');
+            }
+            if (!backgroundMusicBuffer) {
+                backgroundMusicBuffer = await loadSound('/Ancient_Champions.ogg');
+            }
+            
+            // Start background music
+            playBackgroundMusic();
+
+        } catch (e) {
+            console.error("Web Audio API is not supported or failed to initialize.", e);
+        }
+
+    }, { once: true }); // The event listener will only run once
+}
+
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     forceLandscape();
     initializeCharacterSelection();
-
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        // Preload sounds
-        stoneShiftBuffer = await loadSound('stone_shift.mp3');
-        backgroundMusicBuffer = await loadSound('/Ancient_Champions.ogg');
-        
-        // Attempt to start music right away if autoplay is allowed
-        playBackgroundMusic();
-
-    } catch (e) {
-        console.error("Web Audio API is not supported in this browser or the sound failed to load.", e);
-    }
+    initializeStartOverlay();
 });

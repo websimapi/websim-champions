@@ -129,6 +129,14 @@ function isGreenish(h, s, l, r, g, b) {
 }
 
 function isYellowish(h, s, l, r, g, b) {
+    // --- Skin Tone Preservation ---
+    // This guard prevents the wizard's face and hands from being recolored.
+    // It identifies pixels with hues (orange/tan), saturation, and lightness
+    // that are characteristic of skin, and excludes them from the color shift.
+    const isSkin = (h > 18 && h < 45) && (s > 0.20 && s < 0.65) && (l > 0.25 && l < 0.80);
+    if (isSkin) return false;
+
+    // --- Original Logic ---
     const d = Math.abs(h - 60); const hueDist = Math.min(d, 360 - d);
     const hueOK = hueDist <= 70;
     const yellowDominance = (r + g) - (2 * b);

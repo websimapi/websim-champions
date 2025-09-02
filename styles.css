@@ -479,6 +479,6 @@ body {
 #custom-cursor {
     position: fixed; width: 32px; height: 32px;
     background: url('/relic_cursor.png') no-repeat center/contain;
-    pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
+    pointer-events: none; z-index: 10000; transform: translate(-16px, -18px);
     opacity: 0; transition: opacity .15s ease;
 }

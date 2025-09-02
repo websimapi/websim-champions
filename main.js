@@ -342,15 +342,13 @@ function initializeRelicCursor() {
 
 function initializeClickAssist() {
     const selectors = ['.arrow', '.character-slot', '#start-overlay'];
-    const region = { left: -16, right: 16, top: 8, bottom: 48, step: 4 }; // shifted down and taller for better hit
+    const steps = [-24, 0, 24];
     document.addEventListener('pointerup', (e) => {
         if (selectors.some(s => e.target.closest(s))) return;
-        for (let dy = region.top; dy <= region.bottom; dy += region.step) {
-            for (let dx = region.left; dx <= region.right; dx += region.step) {
-                const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
-                const hit = el && el.closest(selectors.join(','));
-                if (hit) { hit.click(); return; }
-            }
+        for (let dx of steps) for (let dy of steps) {
+            const el = document.elementFromPoint(e.clientX + dx, e.clientY + dy);
+            const hit = el && el.closest(selectors.join(','));
+            if (hit) { hit.click(); return; }
         }
     }, true);
 }

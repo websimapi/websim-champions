@@ -1,40 +1,44 @@
 // Mobile and orientation handling
-function forceLandscape() {
+function handleMobileLayout() {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        // Add class for mobile-specific styling
-        document.body.classList.add('mobile');
-        document.body.classList.add('landscape-view'); // Add class for unified landscape styling
-        
-        // Hide orientation message permanently, we will force the layout
-        const message = document.getElementById('orientation-message');
-        if (message) message.style.display = 'none';
+    if (!isMobile) return;
 
-        function checkOrientation() {
-            // Screen API for more reliable orientation detection
-            const isPortrait = screen.orientation ? screen.orientation.type.includes('portrait') : window.innerHeight > window.innerWidth;
-
-            if (isPortrait) {
-                document.body.classList.add('force-landscape');
-            } else {
-                document.body.classList.remove('force-landscape');
-            }
-        }
-        
-        // Check orientation on load and on any change
-        checkOrientation();
-        window.addEventListener('resize', checkOrientation);
-        
-        // Use screen.orientation if available, otherwise fallback to orientationchange
-        if (screen.orientation) {
-            screen.orientation.addEventListener('change', () => {
-                setTimeout(checkOrientation, 100);
-            });
+    function adjustLayout() {
+        const body = document.body;
+        if (window.screen.height > window.screen.width) { // Check physical orientation
+            // Portrait mode: force landscape view via CSS
+            body.classList.add('force-landscape');
+            const newWidth = window.screen.height;
+            const newHeight = window.screen.width;
+            body.style.width = `${newWidth}px`;
+            body.style.height = `${newHeight}px`;
         } else {
-            window.addEventListener('orientationchange', () => {
-                setTimeout(checkOrientation, 100);
+            // Landscape mode: normal view
+            body.classList.remove('force-landscape');
+            body.style.width = '';
+            body.style.height = '';
+        }
+    }
+
+    // Adjust on load and when orientation changes
+    window.addEventListener('orientationchange', () => setTimeout(adjustLayout, 100));
+    adjustLayout();
+}
+
+async function lockScreen() {
+    try {
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            await document.documentElement.webkitRequestFullscreen();
+        }
+        
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(err => {
+                 console.warn("Could not lock orientation, but continuing.", err);
             });
         }
+    } catch (err) {
+        console.warn("Could not enter fullscreen or lock orientation:", err);
     }
 }

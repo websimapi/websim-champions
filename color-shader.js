@@ -18,7 +18,7 @@ function applyColorShaderToImage(image, slotColorName) {
 
     return new Promise(resolve => {
         const process = async () => {
-            const blobUrl = await processAndCacheImage(image, { baseHue: image.dataset.baseHue }, slotColorName);
+            const blobUrl = await processAndCacheImage(image, { baseHue: image.dataset.baseHue }, slotColorName, image.src);
             if (blobUrl) {
                 if (image.dataset.blobUrl) URL.revokeObjectURL(image.dataset.blobUrl);
                 image.src = blobUrl;
@@ -35,23 +35,22 @@ function applyColorShaderToImage(image, slotColorName) {
     });
 }
 
-function processAndCacheImage(img, characterData, slotColorName) {
+function processAndCacheImage(img, characterData, slotColorName, imgSrc) {
     const baseHue = parseInt(characterData.baseHue, 10);
     const targetHue = slotColors[slotColorName];
 
-    if (baseHue === 120) { 
+    // Special logic only for Archer, Warrior, and Valkyrie
+    if (imgSrc && (imgSrc.includes('character2') || imgSrc.includes('character2_female'))) {
         return selectiveRecolorArcher(img, targetHue, true);
     }
-    if (baseHue === 240) {
+    if (imgSrc && imgSrc.includes('character1')) {
         return selectiveRecolorWarrior(img, targetHue, true);
     }
-    if (baseHue === 0) {
+    if (imgSrc && imgSrc.includes('character4')) {
         return selectiveRecolorValkyrie(img, targetHue, true);
     }
     
-    // For characters without special logic (like Wizard), just return null as CSS filter is fine.
-    // We only need to cache canvas-processed images.
-    // To implement hue-rotate via canvas for them too, we would add that logic here.
+    // Fallback for others - no canvas processing needed
     return Promise.resolve(null);
 }
 

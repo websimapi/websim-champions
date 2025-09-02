@@ -319,42 +319,7 @@ body {
     margin: 0 0 4px;
     width: 90%;
     max-width: 200px;
-}
-
-.gender-toggle-container {
-    height: 28px; /* Reserve space to prevent layout shift */
-    margin-top: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.gender-toggle {
-    display: flex;
-    background: rgba(0,0,0,0.5);
-    border-radius: 15px;
-    border: 1px solid rgba(255,255,255,0.3);
-    overflow: hidden;
-    padding: 2px;
-}
-
-.gender-toggle button {
-    background: transparent;
-    border: none;
-    color: rgba(255,255,255,0.6);
-    padding: 2px 10px;
-    font-family: 'Cinzel', serif;
-    cursor: var(--relic-cursor);
-    transition: all 0.2s ease;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.gender-toggle button.active {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    border-radius: 12px;
-    text-shadow: 0 0 5px white;
+    gap: 4px;
 }
 
 .arrow {
@@ -378,6 +343,24 @@ body {
 }
 
 .arrow:active {
+    transform: scale(1.1);
+}
+
+.gender-toggle {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 1rem;
+    cursor: var(--relic-cursor);
+    padding: 0 6px;
+    border-radius: 4px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.gender-toggle:hover {
+    background: rgba(255,255,255,0.2);
     transform: scale(1.1);
 }
 

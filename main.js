@@ -13,7 +13,7 @@ let preprocessPromise = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    forceLandscape();
+    initializeMobile();
     initializeCharacterSelection();
     preprocessPromise = preprocessCharacters();
     window.preprocessPromise = preprocessPromise; // Make available globally

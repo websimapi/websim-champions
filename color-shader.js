@@ -23,9 +23,6 @@ function applyColorShaderToImage(image, slotColorName) {
     if (baseHue === 240) {
         return selectiveRecolorWarrior(image, targetHue);
     }
-    if (baseHue === 0) {
-        return selectiveRecolorValkyrie(image, targetHue);
-    }
     const hueShift = targetHue - baseHue;
     image.style.filter = `hue-rotate(${hueShift}deg)`;
     return Promise.resolve();
@@ -81,59 +78,6 @@ function selectiveRecolorWarrior(img, targetHue) {
     });
 }
 
-function selectiveRecolorValkyrie(img, targetHue) {
-    const shift = ((targetHue - 0) + 360) % 360;
-    return new Promise((resolve) => {
-        const process = () => {
-            try {
-                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                x.drawImage(img, 0, 0);
-                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
-                for (let i = 0; i < p.length; i += 4) {
-                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
-                    if (a < 5) continue;
-                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
-                    if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b)) {
-                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-
-                        // Custom adjustments for better target colors
-                        if (targetHue === 240) { // Blue
-                            s = Math.min(1, s * 1.1);
-                            l = Math.max(0, l * 0.95);
-                        } else if (targetHue === 120) { // Green
-                            s = Math.min(1, s * 1.1);
-                            l = Math.max(0, l * 0.9);
-                        } else if (targetHue === 60) { // Yellow
-                            h = 50; // shift to a more golden yellow
-                            s = Math.min(1, s * 1.2);
-                            l = Math.max(0, l * 1.05);
-                        }
-                        
-                        const rgb = hslToRgb(h, s, l);
-                        p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
-                    }
-                }
-                x.putImageData(d, 0, 0);
-                c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
-                    const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Valkyrie Recolor] Applied selective red shift -> hue', targetHue);
-                    resolve();
-                });
-            } catch (e) { 
-                console.warn('[Valkyrie Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-0}deg)`; 
-                resolve();
-            }
-        };
-        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
-    });
-}
-
 function selectiveRecolorArcher(img, targetHue) {
     const shift = ((targetHue - 120) + 360) % 360;
     return new Promise((resolve) => {
@@ -176,21 +120,6 @@ function selectiveRecolorArcher(img, targetHue) {
         };
         if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
     });
-}
-
-function isReddish(h, s, l, r, g, b) {
-    const hueOK = (h <= 35 || h >= 335); // Capture a range around red
-    const redDominance = r - Math.max(g, b);
-    const chromaOK = redDominance > 15; // Pixel must be distinctly red
-    const satOK = s > 0.25;
-    const lightOK = l > 0.1 && l < 0.9;
-    
-    // Avoid recoloring skin tones, which are often low-saturation oranges
-    if (h > 18 && h < 45 && s < 0.65) {
-        return false;
-    }
-
-    return (lightOK && satOK && (hueOK || chromaOK));
 }
 
 function isBluish(h, s, l, r, g, b) {

@@ -87,12 +87,22 @@ function selectiveRecolorWizard(img, targetHue) {
                     const hsl = rgbToHsl(r, g, b);
                     if (isYellowish(hsl.h, hsl.s, hsl.l, r, g, b)) {
                         let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-                        if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.25); l = Math.max(0, Math.min(1, l * 1.1)); }
-                        else if (targetHue === 120) { h = 120; s = Math.min(1, s * 1.2); l = Math.max(0, Math.min(1, l * 1.05)); }
-                        else if (targetHue === 240) { h = 240; s = Math.min(1, s * 1.15); l = Math.max(0, Math.min(1, l * 1.08)); }
+                        if (targetHue === 0) { // To Red
+                            h = 0; 
+                            s = Math.min(1, s * 1.35); 
+                            l = Math.max(0, Math.min(1, l * 1.15)); 
+                        } else if (targetHue === 120) { // To Green
+                            h = 120; 
+                            s = Math.min(1, s * 1.2); 
+                            l = Math.max(0, Math.min(1, l * 1.05)); 
+                        } else if (targetHue === 240) { // To Blue
+                            h = 240; 
+                            s = Math.min(1, s * 1.2); 
+                            l = Math.max(0, Math.min(1, l * 1.1)); 
+                        }
                         const rgb = hslToRgb(h, s, l);
-                        const rr = targetHue === 0 ? Math.min(255, rgb.r + 12) : (targetHue === 120 ? Math.max(0, rgb.r - 8) : rgb.r);
-                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 8) : (targetHue === 240 ? Math.max(0, rgb.g - 12) : rgb.g);
+                        const rr = targetHue === 0 ? Math.min(255, rgb.r + 20) : (targetHue === 120 ? Math.max(0, rgb.r - 8) : rgb.r);
+                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 15) : (targetHue === 240 ? Math.max(0, rgb.g - 12) : rgb.g);
                         const bb = targetHue === 120 ? Math.max(0, rgb.b - 20) : (targetHue === 240 ? Math.min(255, rgb.b + 15) : rgb.b);
                         p[i] = rr; p[i+1] = gg; p[i+2] = bb;
                     }
@@ -131,20 +141,22 @@ function isGreenish(h, s, l, r, g, b) {
 function isYellowish(h, s, l, r, g, b) {
     // --- Skin Tone Preservation ---
     // This guard prevents the wizard's face and hands from being recolored.
-    // It identifies pixels with hues (orange/tan), saturation, and lightness
-    // that are characteristic of skin, and excludes them from the color shift.
     const isSkin = (h > 18 && h < 45) && (s > 0.20 && s < 0.65) && (l > 0.25 && l < 0.80);
     if (isSkin) return false;
 
-    // --- Original Logic ---
+    // --- Blue/Purple Robe Preservation ---
+    // This guard prevents the wizard's robes from being recolored.
+    const isBluePurple = (h > 200 && h < 300);
+    if (isBluePurple) return false;
+
+    // --- Yellow/Gold Targeting Logic ---
     const d = Math.abs(h - 60); const hueDist = Math.min(d, 360 - d);
-    const hueOK = hueDist <= 70;
-    const yellowDominance = (r + g) - (2 * b);
-    const chromaOK = yellowDominance > 10;
-    const satOK = s > 0.12;
-    const lightOK = l > 0.08 && l < 0.88;
-    const magicalEffectGuard = (r > b && g > b) && (r + g >= 60) && l > 0.25;
-    return ((hueOK && satOK && lightOK) || chromaOK || magicalEffectGuard);
+    const hueOK = hueDist <= 35; // Tighter hue range for yellows/golds
+    const satOK = s > 0.25;
+    const lightOK = l > 0.20 && l < 0.95;
+    const magicalEffectGuard = (r > b && g > b) && (r + g >= 100) && l > 0.25;
+
+    return ((hueOK && satOK && lightOK) || magicalEffectGuard);
 }
 
 function rgbToHsl(r, g, b) {

@@ -482,3 +482,7 @@ body {
     pointer-events: none; z-index: 10000; transform: translate(-16px, -2px);
     opacity: 0; transition: opacity .15s ease;
 }
+
+#cursor-region {
+    position: fixed; width:32px; height:32px; border:1.5px dashed rgba(0,255,255,.7); border-radius:4px; pointer-events:none; z-index:9999; transform: translate(-16px, -2px); opacity:0; transition:opacity .15s ease; box-shadow:0 0 8px rgba(0,255,255,.35) inset;
+}

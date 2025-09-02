@@ -319,11 +319,14 @@ function initializeRelicCursor() {
             cursor.id = 'custom-cursor';
             document.body.appendChild(cursor);
         }
-        const show = () => (cursor.style.opacity = '1');
-        const hide = () => (cursor.style.opacity = '0');
+        let region = document.getElementById('cursor-region'); if (!region){ region = document.createElement('div'); region.id='cursor-region'; document.body.appendChild(region); }
+        const show = () => { cursor.style.opacity = '1'; region.style.opacity = '1'; };
+        const hide = () => { cursor.style.opacity = '0'; region.style.opacity = '0'; };
         window.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
+            region.style.left = e.clientX + 'px';
+            region.style.top = e.clientY + 'px';
             show();
         });
         window.addEventListener('mouseenter', show);

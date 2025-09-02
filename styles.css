@@ -4,6 +4,13 @@
     box-sizing: border-box;
 }
 
+html, body {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
 body {
     font-family: 'Cinzel', serif;
     background: linear-gradient(135deg, #1a1a2e, #16213e);

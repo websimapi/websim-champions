@@ -17,7 +17,7 @@ body {
     color: #ffffff;
     height: 100vh;
     overflow: hidden;
-    cursor: url('/relic_cursor.png') 12 12, auto;
+    cursor: url('/relic_cursor.png') 16 0, auto;
 }
 
 @media (pointer: coarse) {
@@ -466,4 +466,8 @@ body {
     .character-stats div {
         font-size: 0.6rem;
     }
+}
+
+.arrow, #start-overlay, button, a, [role="button"] {
+    cursor: inherit;
 }

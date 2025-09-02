@@ -169,9 +169,13 @@ function selectiveRecolorArcher(img, targetHue) {
                 if (a < 5) continue;
                 const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
                 if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
-                    let h = (hsl.h + shift) % 360;
-                    const rgb = hslToRgb(h, hsl.s, hsl.l);
-                    p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
+                    let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
+                    if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.2); l = Math.max(0, Math.min(1, l * 0.78)); }
+                    const rgb = hslToRgb(h, s, l);
+                    const rr = targetHue === 0 ? Math.min(255, rgb.r + 8) : rgb.r;
+                    const gg = targetHue === 0 ? Math.max(0, rgb.g - 10) : rgb.g;
+                    const bb = targetHue === 0 ? Math.max(0, rgb.b - 24) : rgb.b;
+                    p[i] = rr; p[i+1] = gg; p[i+2] = bb;
                 }
             }
             x.putImageData(d, 0, 0);

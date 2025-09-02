@@ -28,47 +28,6 @@ function applyColorShaderToImage(image, slotColorName) {
     return Promise.resolve();
 }
 
-function selectiveRecolorWizard(img, targetHue) {
-    const shift = ((targetHue - 60) + 360) % 360;
-    return new Promise((resolve) => {
-        const process = () => {
-            try {
-                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                x.drawImage(img, 0, 0);
-                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
-                for (let i = 0; i < p.length; i += 4) {
-                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
-                    if (a < 5) continue;
-                    const hsl = rgbToHsl(r, g, b);
-                    if (isYellowish(hsl.h, hsl.s, hsl.l)) {
-                        const h = (hsl.h + shift) % 360;
-                        const s = hsl.s;
-                        const l = hsl.l;
-                        const rgb = hslToRgb(h, s, l);
-                        p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
-                    }
-                }
-                x.putImageData(d, 0, 0);
-                c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
-                    const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Wizard Recolor] Applied selective yellow shift -> hue', targetHue);
-                    resolve();
-                });
-            } catch (e) { 
-                console.warn('[Wizard Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-60}deg)`; 
-                resolve();
-            }
-        };
-        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
-    });
-}
-
 function selectiveRecolorArcher(img, targetHue) {
     const shift = ((targetHue - 120) + 360) % 360;
     return new Promise((resolve) => {
@@ -113,6 +72,51 @@ function selectiveRecolorArcher(img, targetHue) {
     });
 }
 
+function selectiveRecolorWizard(img, targetHue) {
+    const shift = ((targetHue - 60) + 360) % 360;
+    return new Promise((resolve) => {
+        const process = () => {
+            try {
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                x.drawImage(img, 0, 0);
+                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+                for (let i = 0; i < p.length; i += 4) {
+                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                    if (a < 5) continue;
+                    const hsl = rgbToHsl(r, g, b);
+                    if (isYellowish(hsl.h, hsl.s, hsl.l, r, g, b)) {
+                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
+                        if (targetHue === 0) { h = 0; s = Math.min(1, s * 1.15); l = Math.max(0, Math.min(1, l * 1.05)); }
+                        else if (targetHue === 120) { h = 120; s = Math.min(1, s * 1.18); l = Math.max(0, Math.min(1, l * 1.08)); }
+                        else if (targetHue === 240) { h = 240; s = Math.min(1, s * 1.12); l = Math.max(0, Math.min(1, l * 1.06)); }
+                        const rgb = hslToRgb(h, s, l);
+                        const rr = targetHue === 0 ? Math.min(255, rgb.r + 12) : (targetHue === 120 ? Math.max(0, rgb.r - 8) : rgb.r);
+                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 8) : (targetHue === 120 ? Math.min(255, rgb.g + 15) : rgb.g);
+                        const bb = targetHue === 0 ? Math.max(0, rgb.b - 20) : (targetHue === 240 ? Math.min(255, rgb.b + 18) : rgb.b);
+                        p[i] = rr; p[i+1] = gg; p[i+2] = bb;
+                    }
+                }
+                x.putImageData(d, 0, 0);
+                c.toBlob(blob => {
+                    if (!blob) { resolve(); return; }
+                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    const url = URL.createObjectURL(blob);
+                    img.dataset.blobUrl = url;
+                    img.style.filter = ''; img.src = url;
+                    console.info('[Wizard Recolor] Applied selective yellow shift -> hue', targetHue);
+                    resolve();
+                });
+            } catch (e) { 
+                console.warn('[Wizard Recolor] Fallback to CSS filter', e); 
+                img.style.filter = `hue-rotate(${targetHue-60}deg)`; 
+                resolve();
+            }
+        };
+        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+    });
+}
+
 function isGreenish(h, s, l, r, g, b) {
     const d = Math.abs(h - 120); const hueDist = Math.min(d, 360 - d);
     const hueOK = hueDist <= 65;
@@ -124,12 +128,15 @@ function isGreenish(h, s, l, r, g, b) {
     return ((hueOK && satOK && lightOK) || chromaOK || darkGreenGuard);
 }
 
-function isYellowish(h, s, l) {
+function isYellowish(h, s, l, r, g, b) {
     const d = Math.abs(h - 60); const hueDist = Math.min(d, 360 - d);
-    const hueOK = hueDist <= 40;
-    const satOK = s > 0.25;
-    const lightOK = l > 0.15 && l < 0.95;
-    return hueOK && satOK && lightOK;
+    const hueOK = hueDist <= 50;
+    const yellowDominance = (r + g) - (2 * b);
+    const chromaOK = yellowDominance > 15;
+    const satOK = s > 0.12;
+    const lightOK = l > 0.08 && l < 0.90;
+    const brightYellowGuard = (r > b && g > b) && ((r + g) >= 60) && l > 0.25;
+    return ((hueOK && satOK && lightOK) || chromaOK || brightYellowGuard);
 }
 
 function rgbToHsl(r, g, b) {

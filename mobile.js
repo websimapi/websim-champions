@@ -6,34 +6,23 @@ function forceLandscape() {
         // Add class for mobile-specific styling
         document.body.classList.add('mobile');
         
-        // Try to lock orientation to landscape if supported
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {
-                console.log('Orientation lock not supported or failed.');
-            });
-        }
-        
-        // Show orientation message if in portrait
-        function checkOrientation() {
-            // Use innerWidth/innerHeight for layout viewport, which is more reliable
-            const isPortrait = window.innerHeight > window.innerWidth;
-            const message = document.getElementById('orientation-message');
-            const mainContent = document.querySelector('.character-selection');
+        // Hide orientation message permanently, we will force the layout
+        const message = document.getElementById('orientation-message');
+        if (message) message.style.display = 'none';
 
-            if (message && mainContent) {
-                if (isPortrait) {
-                    message.style.display = 'flex';
-                    mainContent.style.display = 'none';
-                } else {
-                    message.style.display = 'none';
-                    mainContent.style.display = 'flex';
-                }
+        function checkOrientation() {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            if (isPortrait) {
+                document.body.classList.add('force-landscape');
+            } else {
+                document.body.classList.remove('force-landscape');
             }
         }
         
         // Check orientation on load and on any change
         checkOrientation();
         window.addEventListener('resize', checkOrientation);
+        // orientationchange is sometimes more reliable
         window.addEventListener('orientationchange', () => {
             // A small delay can help get the correct dimensions after orientation change
             setTimeout(checkOrientation, 100);

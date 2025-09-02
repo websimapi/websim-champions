@@ -20,11 +20,62 @@ function applyColorShaderToImage(image, slotColorName) {
     if (baseHue === 120) { 
         return selectiveRecolorArcher(image, targetHue);
     }
+    if (baseHue === 240) {
+        return selectiveRecolorWarrior(image, targetHue);
+    }
     const hueShift = targetHue - baseHue;
-    image.style.filter = (targetHue === 60)
-        ? `hue-rotate(${hueShift + 8}deg) saturate(1.22) brightness(1.08) contrast(1.05)`
-        : `hue-rotate(${hueShift}deg)`;
+    image.style.filter = `hue-rotate(${hueShift}deg)`;
     return Promise.resolve();
+}
+
+function selectiveRecolorWarrior(img, targetHue) {
+    const shift = ((targetHue - 240) + 360) % 360;
+    return new Promise((resolve) => {
+        const process = () => {
+            try {
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                x.drawImage(img, 0, 0);
+                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+                for (let i = 0; i < p.length; i += 4) {
+                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                    if (a < 5) continue;
+                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
+                    if (isBluish(hsl.h, hsl.s, hsl.l, r, g, b)) {
+                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
+                        if (targetHue === 60) { 
+                            h = 52; 
+                            s = Math.min(1, s * 1.22); 
+                            l = Math.max(0, Math.min(1, l * 1.12)); 
+                        }
+                        const rgb = hslToRgb(h, s, l);
+                        let rr = rgb.r, gg = rgb.g, bb = rgb.b;
+                        if (targetHue === 60) {
+                           rr = Math.min(255, rgb.r + 22);
+                           gg = Math.max(0, rgb.g - 4);
+                           bb = Math.max(0, rgb.b - 36);
+                        }
+                        p[i] = rr; p[i+1] = gg; p[i+2] = bb;
+                    }
+                }
+                x.putImageData(d, 0, 0);
+                c.toBlob(blob => {
+                    if (!blob) { resolve(); return; }
+                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    const url = URL.createObjectURL(blob);
+                    img.dataset.blobUrl = url;
+                    img.style.filter = ''; img.src = url;
+                    console.info('[Warrior Recolor] Applied selective blue shift -> hue', targetHue);
+                    resolve();
+                });
+            } catch (e) { 
+                console.warn('[Warrior Recolor] Fallback to CSS filter', e); 
+                img.style.filter = `hue-rotate(${targetHue-240}deg)`; 
+                resolve();
+            }
+        };
+        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
+    });
 }
 
 function selectiveRecolorArcher(img, targetHue) {
@@ -69,6 +120,17 @@ function selectiveRecolorArcher(img, targetHue) {
         };
         if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
     });
+}
+
+function isBluish(h, s, l, r, g, b) {
+    const d = Math.abs(h - 240); const hueDist = Math.min(d, 360 - d);
+    const hueOK = hueDist <= 65;
+    const blueDominance = b - Math.max(r, g);
+    const chromaOK = blueDominance > 5;
+    const satOK = s > 0.10;
+    const lightOK = l > 0.06 && l < 0.92;
+    const darkBlueGuard = (b > r && b > g) && (b >= 28) && l < 0.35;
+    return ((hueOK && satOK && lightOK) || chromaOK || darkBlueGuard);
 }
 
 function isGreenish(h, s, l, r, g, b) {

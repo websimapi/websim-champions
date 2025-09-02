@@ -150,7 +150,6 @@ body {
     right: 0;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
     padding: 10px;
-    padding-top: 5px;
     text-align: center;
     z-index: 1;
 }
@@ -163,7 +162,12 @@ body {
 }
 
 .character-stats .stat-label {
-    display: none;
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+    -webkit-text-stroke: 1px black;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    paint-order: stroke fill;
 }
 
 .character-overlay {
@@ -180,6 +184,36 @@ body {
     object-position: center 25%;
     flex-grow: 1; /* Allows image to take space */
     min-height: 0;
+}
+
+.player-indicator {
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.character-slot[data-color="blue"] .player-indicator {
+    color: #4a9eff;
+}
+
+.character-slot[data-color="green"] .player-indicator {
+    color: #4ade80;
+}
+
+.character-slot[data-color="yellow"] .player-indicator {
+    color: #fbbf24;
+}
+
+.character-slot[data-color="red"] .player-indicator {
+    color: #ef4444;
+}
+
+.character-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    position: relative;
 }
 
 .instructions {
@@ -232,7 +266,10 @@ body {
     
     .character-name {
         font-size: 1rem;
-        bottom: 50px;
+    }
+
+    .player-indicator {
+        font-size: 0.7rem;
     }
 
     .instructions {
@@ -260,7 +297,10 @@ body {
 
     .character-name {
         font-size: 0.9rem;
-        bottom: 45px;
+    }
+
+    .player-indicator {
+        font-size: 0.6rem;
     }
 
     .select-character-text {

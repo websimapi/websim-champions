@@ -168,7 +168,7 @@ function selectiveRecolorArcher(img, targetHue) {
                 const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
                 if (a < 5) continue;
                 const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
-                if (isGreenish(hsl.h, hsl.s, hsl.l)) {
+                if (isGreenish(hsl.h, hsl.s, hsl.l, r, g, b)) {
                     let h = (hsl.h + shift) % 360;
                     const rgb = hslToRgb(h, hsl.s, hsl.l);
                     p[i] = rgb.r; p[i+1] = rgb.g; p[i+2] = rgb.b;
@@ -188,10 +188,14 @@ function selectiveRecolorArcher(img, targetHue) {
     if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
 }
 
-function isGreenish(h, s, l) {
-    // Focus on cloth greens; avoid skin tones
-    const inHue = (h >= 85 && h <= 155);
-    return inHue && s > 0.25 && l > 0.15 && l < 0.85;
+function isGreenish(h, s, l, r, g, b) {
+    const d = Math.abs(h - 120); const hueDist = Math.min(d, 360 - d);
+    const hueOK = hueDist <= 40; // generous cone around green
+    const greenDominance = g - Math.max(r, b);
+    const chromaOK = greenDominance > 10; // RGB dominance guard
+    const satOK = s > 0.18;
+    const lightOK = l > 0.10 && l < 0.92;
+    return (hueOK && satOK && lightOK) || (chromaOK && l < 0.85);
 }
 
 function rgbToHsl(r, g, b) {

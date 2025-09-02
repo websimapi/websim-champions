@@ -20,11 +20,10 @@ function applyColorShaderToImage(image, slotColorName) {
     if (baseHue === 120) { 
         return selectiveRecolorArcher(image, targetHue);
     }
-    if (baseHue === 60) {
-        return selectiveRecolorWizard(image, targetHue);
-    }
     const hueShift = targetHue - baseHue;
-    image.style.filter = `hue-rotate(${hueShift}deg)`;
+    image.style.filter = (targetHue === 60)
+        ? `hue-rotate(${hueShift + 8}deg) saturate(1.22) brightness(1.08) contrast(1.05)`
+        : `hue-rotate(${hueShift}deg)`;
     return Promise.resolve();
 }
 
@@ -72,61 +71,6 @@ function selectiveRecolorArcher(img, targetHue) {
     });
 }
 
-function selectiveRecolorWizard(img, targetHue) {
-    const shift = ((targetHue - 60) + 360) % 360;
-    return new Promise((resolve) => {
-        const process = () => {
-            try {
-                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                x.drawImage(img, 0, 0);
-                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
-                for (let i = 0; i < p.length; i += 4) {
-                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
-                    if (a < 5) continue;
-                    const hsl = rgbToHsl(r, g, b);
-                    if (isYellowish(hsl.h, hsl.s, hsl.l, r, g, b)) {
-                        let h = (hsl.h + shift) % 360; let s = hsl.s, l = hsl.l;
-                        if (targetHue === 0) { // To Red
-                            h = 0; 
-                            s = Math.min(1, s * 1.35); 
-                            l = Math.max(0, Math.min(1, l * 1.15)); 
-                        } else if (targetHue === 120) { // To Green
-                            h = 120; 
-                            s = Math.min(1, s * 1.2); 
-                            l = Math.max(0, Math.min(1, l * 1.05)); 
-                        } else if (targetHue === 240) { // To Blue
-                            h = 240; 
-                            s = Math.min(1, s * 1.2); 
-                            l = Math.max(0, Math.min(1, l * 1.1)); 
-                        }
-                        const rgb = hslToRgb(h, s, l);
-                        const rr = targetHue === 0 ? Math.min(255, rgb.r + 20) : (targetHue === 120 ? Math.max(0, rgb.r - 8) : rgb.r);
-                        const gg = targetHue === 0 ? Math.max(0, rgb.g - 15) : (targetHue === 240 ? Math.max(0, rgb.g - 12) : rgb.g);
-                        const bb = targetHue === 120 ? Math.max(0, rgb.b - 20) : (targetHue === 240 ? Math.min(255, rgb.b + 15) : rgb.b);
-                        p[i] = rr; p[i+1] = gg; p[i+2] = bb;
-                    }
-                }
-                x.putImageData(d, 0, 0);
-                c.toBlob(blob => {
-                    if (!blob) { resolve(); return; }
-                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
-                    const url = URL.createObjectURL(blob);
-                    img.dataset.blobUrl = url;
-                    img.style.filter = ''; img.src = url;
-                    console.info('[Wizard Recolor] Applied selective yellow shift -> hue', targetHue);
-                    resolve();
-                });
-            } catch (e) { 
-                console.warn('[Wizard Recolor] Fallback to CSS filter', e); 
-                img.style.filter = `hue-rotate(${targetHue-60}deg)`; 
-                resolve();
-            }
-        };
-        if (img.complete && img.naturalWidth) process(); else img.addEventListener('load', process, { once: true });
-    });
-}
-
 function isGreenish(h, s, l, r, g, b) {
     const d = Math.abs(h - 120); const hueDist = Math.min(d, 360 - d);
     const hueOK = hueDist <= 65;
@@ -136,27 +80,6 @@ function isGreenish(h, s, l, r, g, b) {
     const lightOK = l > 0.06 && l < 0.92;
     const darkGreenGuard = (g > r && g > b) && (g >= 28) && l < 0.35;
     return ((hueOK && satOK && lightOK) || chromaOK || darkGreenGuard);
-}
-
-function isYellowish(h, s, l, r, g, b) {
-    // --- Skin Tone Preservation ---
-    // This guard prevents the wizard's face and hands from being recolored.
-    const isSkin = (h > 18 && h < 45) && (s > 0.20 && s < 0.65) && (l > 0.25 && l < 0.80);
-    if (isSkin) return false;
-
-    // --- Blue/Purple Robe Preservation ---
-    // This guard prevents the wizard's robes from being recolored.
-    const isBluePurple = (h > 200 && h < 300);
-    if (isBluePurple) return false;
-
-    // --- Yellow/Gold Targeting Logic ---
-    const d = Math.abs(h - 60); const hueDist = Math.min(d, 360 - d);
-    const hueOK = hueDist <= 35; // Tighter hue range for yellows/golds
-    const satOK = s > 0.25;
-    const lightOK = l > 0.20 && l < 0.95;
-    const magicalEffectGuard = (r > b && g > b) && (r + g >= 100) && l > 0.25;
-
-    return ((hueOK && satOK && lightOK) || magicalEffectGuard);
 }
 
 function rgbToHsl(r, g, b) {

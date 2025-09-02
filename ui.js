@@ -31,12 +31,6 @@ function initializeStartOverlay() {
     const startOverlay = document.getElementById('start-overlay');
 
     startOverlay.addEventListener('click', async () => {
-        // On mobile, first try to lock screen orientation and go fullscreen
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-            await lockScreen();
-        }
-
         try { if (window.preprocessPromise) await window.preprocessPromise; } catch(_) {}
         startOverlay.classList.add('hidden');
         await initializeAudio();

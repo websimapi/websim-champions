@@ -13,8 +13,6 @@ html, body {
     user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
-    width: 100%; /* Ensure body takes full width */
-    height: 100%; /* Ensure body takes full height */
 }
 
 body {
@@ -24,14 +22,6 @@ body {
     height: 100vh;
     overflow: hidden;
     cursor: var(--relic-cursor);
-}
-
-/* New styles for forced landscape */
-body.force-landscape {
-    transform-origin: top left;
-    transform: rotate(90deg) translateY(-100%);
-    overflow: hidden;
-    position: absolute;
 }
 
 @media (pointer: coarse) {

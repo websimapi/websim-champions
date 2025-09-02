@@ -342,7 +342,7 @@ function initializeRelicCursor() {
 
 function initializeClickAssist() {
     const selectors = ['.arrow', '.character-slot', '#start-overlay'];
-    const region = { left: -16, right: 16, top: -2, bottom: 30, step: 4 }; // align to 32x32 cursor with 2px top hotspot
+    const region = { left: -16, right: 16, top: 8, bottom: 48, step: 4 }; // shifted down and taller for better hit
     document.addEventListener('pointerup', (e) => {
         if (selectors.some(s => e.target.closest(s))) return;
         for (let dy = region.top; dy <= region.bottom; dy += region.step) {

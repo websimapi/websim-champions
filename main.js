@@ -231,19 +231,6 @@ function initializeCharacterSelection() {
         // Initial color shader application
         applyColorShader(slot);
 
-        slot.addEventListener('click', (e) => {
-            // Don't trigger selection when clicking arrows
-            if (e.target.classList.contains('arrow')) {
-                return;
-            }
-
-            // Remove selected state from all slots
-            characterSlots.forEach(s => s.classList.remove('selected'));
-            
-            // Add selected state to clicked slot
-            slot.classList.add('selected');
-        });
-
         // Arrow click listeners for character swapping
         const leftArrow = slot.querySelector('.left-arrow');
         const rightArrow = slot.querySelector('.right-arrow');
@@ -319,7 +306,7 @@ function initializeRelicCursor() {
             cursor.id = 'custom-cursor';
             document.body.appendChild(cursor);
         }
-        const INTERACTIVE_SELECTOR = 'button, [role="button"], .character-slot, #start-overlay, .arrow';
+        const INTERACTIVE_SELECTOR = '.arrow';
         const show = () => (cursor.style.opacity = '1');
         const hide = () => { cursor.style.opacity = '0'; cursor.classList.remove('active'); };
         window.addEventListener('mousemove', (e) => {

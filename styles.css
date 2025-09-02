@@ -89,7 +89,7 @@ body {
 
 .character-slot {
     position: relative;
-    cursor: pointer;
+    cursor: default; /* was pointer; make container non-interactive */
     transition: transform 0.2s ease;
     flex: 1 1 0;
     display: flex;
@@ -485,7 +485,7 @@ body {
 
 #custom-cursor::after {
     content: ""; position: absolute; left: 50%; top: 50%;
-    width: 14px; height: 14px; transform: translate(-50%, -50%);
+    width: 14px; height: 14px; transform: translate(-50%, calc(-50% + 5px)); /* shift glow down by 5px */
     border-radius: 50%; opacity: 0; transition: opacity .12s ease;
     background: radial-gradient(circle, rgba(102,199,255,0.55) 0%, rgba(102,199,255,0.35) 55%, rgba(102,199,255,0.0) 80%);
     filter: drop-shadow(0 0 6px rgba(102,199,255,0.6));

@@ -70,7 +70,13 @@ function preprocessCharacters() {
     document.querySelectorAll('.character-slot').forEach(slot => {
         const img = slot.querySelector('.character-image');
         const color = slot.dataset.color;
-        tasks.push(applyColorShaderToImage(img, color));
+        
+        // Add Valkyrie specific preprocessing first
+        if (parseInt(img.dataset.baseHue, 10) === 0) {
+            tasks.push(preprocessValkyrie(img).then(() => applyColorShaderToImage(img, color)));
+        } else {
+            tasks.push(applyColorShaderToImage(img, color));
+        }
     });
     return Promise.all(tasks);
 }

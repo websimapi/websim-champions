@@ -31,6 +31,78 @@ function applyColorShaderToImage(image, slotColorName) {
     return Promise.resolve();
 }
 
+/**
+ * Pre-processes the Valkyrie image to remove white halo artifacts
+ * from the hair and weapon areas, making them transparent.
+ * @param {HTMLImageElement} img The Valkyrie image element.
+ * @returns {Promise<void>} A promise that resolves when processing is complete.
+ */
+function preprocessValkyrie(img) {
+    // Only process Valkyrie image (baseHue 0)
+    if (parseInt(img.dataset.baseHue, 10) !== 0) {
+        return Promise.resolve();
+    }
+     // If already processed, don't do it again
+    if (img.dataset.preprocessed === 'true') {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        const process = () => {
+            try {
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                x.drawImage(img, 0, 0);
+                const d = x.getImageData(0, 0, c.width, c.height); const p = d.data;
+
+                for (let i = 0; i < p.length; i += 4) {
+                    const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
+                    if (a < 5) continue; // Skip transparent pixels
+
+                    const hsl = rgbToHsl(r, g, b);
+                    
+                    // Identify whitish pixels (high lightness, low saturation) that are not part of the armor highlights.
+                    // Armor highlights are typically less bright and more saturated than pure white artifacts.
+                    const isWhitishArtifact = hsl.l > 0.92 && hsl.s < 0.25;
+
+                    if (isWhitishArtifact) {
+                        p[i+3] = 0; // Set alpha to 0 to make it transparent
+                    }
+                }
+                x.putImageData(d, 0, 0);
+                c.toBlob(blob => {
+                    if (!blob) {
+                        console.warn('[Valkyrie Preprocess] Canvas toBlob failed.');
+                        resolve(); 
+                        return; 
+                    }
+                    if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl);
+                    const url = URL.createObjectURL(blob);
+                    img.dataset.blobUrl = url;
+                    img.dataset.preprocessed = 'true'; // Mark as processed
+                    img.style.filter = ''; 
+                    img.src = url;
+                    console.info('[Valkyrie Preprocess] Applied white artifact removal.');
+                    resolve();
+                });
+            } catch (e) { 
+                console.error('[Valkyrie Preprocess] Failed to process image.', e);
+                resolve();
+            }
+        };
+
+        if (img.complete && img.naturalWidth > 0) {
+            process();
+        } else {
+            img.addEventListener('load', process, { once: true });
+            img.addEventListener('error', () => {
+                 console.error('[Valkyrie Preprocess] Image failed to load for preprocessing.');
+                 resolve();
+            }, { once: true });
+        }
+    });
+}
+
 function selectiveRecolorWarrior(img, targetHue) {
     const shift = ((targetHue - 240) + 360) % 360;
     return new Promise((resolve) => {
@@ -138,21 +210,10 @@ function selectiveRecolorValkyrie(img, targetHue) {
                     const r = p[i], g = p[i+1], b = p[i+2], a = p[i+3];
                     if (a < 5) continue;
                     
-                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
-
-                    // --- Artifact Removal Logic ---
-                    // If a pixel is very bright (near white) and has very low saturation,
-                    // consider it an artifact and make it transparent.
-                    // Lowered lightness threshold and increased saturation threshold to catch more artifacts.
-                    if (hsl.l > 0.92 && hsl.s < 0.2) {
-                         p[i+3] = 0; // Set alpha to 0 (fully transparent)
-                         continue;   // Skip further processing for this pixel
-                    }
-                    // --- End Artifact Removal ---
-                    
                     const pixelIndex = i / 4;
                     const y = Math.floor(pixelIndex / c.width);
 
+                    const hsl = rgbToHsl(r, g, b); // h:0-360 s,l:0-1
                     if (isReddish(hsl.h, hsl.s, hsl.l, r, g, b, y, c.height)) {
                         let h = (hsl.h + shift) % 360; 
                         let s = hsl.s, l = hsl.l;

@@ -1,3 +1,43 @@
+// Character data
+const characters = [
+    { name: 'Warrior', img: '/character1.png', baseHue: 240, stats: { strength: 9, speed: 5, magic: 2, armour: 8 } },
+    { name: 'Archer', img: '/character2.png', baseHue: 120, stats: { strength: 6, speed: 9, magic: 4, armour: 5 } },
+    { name: 'Wizard', img: '/character3.png', baseHue: 60, stats: { strength: 3, speed: 6, magic: 10, armour: 3 } },
+    { name: 'Valkyrie', img: '/character4.png', baseHue: 0, stats: { strength: 7, speed: 7, magic: 6, armour: 6 } }
+];
+
+const slotColors = {
+    blue: 240,
+    green: 120,
+    yellow: 60,
+    red: 0
+};
+
+// Update a character slot with new character data
+function updateCharacterSlot(slot, character) {
+    slot.querySelector('.character-image').src = character.img;
+    slot.querySelector('.character-image').alt = character.name;
+    slot.querySelector('.character-image').dataset.baseHue = character.baseHue;
+    slot.querySelector('.stat-label').textContent = character.name;
+    slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
+    slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
+    slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
+    slot.querySelector('.armour').textContent = `Armour: ${character.stats.armour}`;
+
+    applyColorShader(slot);
+}
+
+// Apply CSS filter to shift image color
+function applyColorShader(slot) {
+    const image = slot.querySelector('.character-image');
+    const slotColorName = slot.dataset.color;
+    const targetHue = slotColors[slotColorName];
+    const baseHue = parseInt(image.dataset.baseHue, 10);
+    const hueShift = targetHue - baseHue;
+
+    image.style.filter = `hue-rotate(${hueShift}deg)`;
+}
+
 // Force landscape orientation on mobile
 function forceLandscape() {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -75,18 +115,38 @@ function initializeCharacterSelection() {
     const characterSlots = document.querySelectorAll('.character-slot');
     
     characterSlots.forEach(slot => {
-        slot.addEventListener('click', () => {
+        // Initial color shader application
+        applyColorShader(slot);
+
+        slot.addEventListener('click', (e) => {
+            // Don't trigger selection when clicking arrows
+            if (e.target.classList.contains('arrow')) {
+                return;
+            }
+
             // Remove selected state from all slots
             characterSlots.forEach(s => s.classList.remove('selected'));
             
             // Add selected state to clicked slot
             slot.classList.add('selected');
-            
-            // Add selection effect
-            slot.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                slot.style.transform = 'scale(1.05)';
-            }, 150);
+        });
+
+        // Arrow click listeners for character swapping
+        const leftArrow = slot.querySelector('.left-arrow');
+        const rightArrow = slot.querySelector('.right-arrow');
+
+        leftArrow.addEventListener('click', () => {
+            let currentIndex = parseInt(slot.dataset.characterIndex, 10);
+            currentIndex = (currentIndex - 1 + characters.length) % characters.length;
+            slot.dataset.characterIndex = currentIndex;
+            updateCharacterSlot(slot, characters[currentIndex]);
+        });
+
+        rightArrow.addEventListener('click', () => {
+            let currentIndex = parseInt(slot.dataset.characterIndex, 10);
+            currentIndex = (currentIndex + 1) % characters.length;
+            slot.dataset.characterIndex = currentIndex;
+            updateCharacterSlot(slot, characters[currentIndex]);
         });
     });
 }

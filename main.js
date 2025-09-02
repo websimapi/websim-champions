@@ -347,25 +347,21 @@ function initializeRelicCursor() {
 
 function initializeClickAssist() {
     const priority = ['.arrow', '#start-overlay', '.character-slot'];
-    const range = 16, step = 8;
     document.addEventListener('pointerup', (e) => {
-        // If we already clicked a priority element, let it be.
         if (priority.some(sel => e.target.closest(sel))) return;
-        // Search around pointer, prioritizing arrows
-        for (let dy = 0; dy <= range; dy += step) {
-            for (let dx of [0, dy, -dy]) {
-                const candidates = [
-                    document.elementFromPoint(e.clientX + dx, e.clientY + dy),
-                    document.elementFromPoint(e.clientX + dx, e.clientY - dy)
-                ].filter(Boolean);
-                for (const el of candidates) {
-                    for (const sel of priority) {
-                        const hit = el.closest(sel);
-                        if (hit) { hit.click(); return; }
-                    }
+        const rect = { left: e.clientX - 16, top: e.clientY - 2, right: e.clientX + 16, bottom: e.clientY + 30 };
+        console.debug('[ClickAssist] scanning rect', rect);
+        for (let y = rect.top; y <= rect.bottom; y += 4) {
+            for (let x = rect.left; x <= rect.right; x += 4) {
+                const el = document.elementFromPoint(x, y);
+                if (!el) continue;
+                for (const sel of priority) {
+                    const hit = el.closest(sel);
+                    if (hit) { console.debug('[ClickAssist] hit', sel, hit); hit.click(); return; }
                 }
             }
         }
+        console.debug('[ClickAssist] no hit in region');
     }, true);
 }
 

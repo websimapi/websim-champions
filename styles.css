@@ -168,6 +168,11 @@ body {
     -webkit-text-stroke: 1px black;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     paint-order: stroke fill;
+    border: 2px solid;
+    padding: 2px 10px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.4);
+    display: inline-block;
 }
 
 .character-overlay {

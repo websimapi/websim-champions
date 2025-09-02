@@ -53,10 +53,14 @@ function updateCharacterSlot(slot, character, direction) {
     const imageWrapper = slot.querySelector('.character-image-wrapper');
     const oldImage = imageWrapper.querySelector('.character-image');
     const arrows = slot.querySelectorAll('.arrow');
+    const statLabel = slot.querySelector('.stat-label');
 
     // Disable arrows during animation
     arrows.forEach(arrow => arrow.disabled = true);
     
+    // Fade out name
+    statLabel.classList.add('fade-out');
+
     // Create new image
     const newImage = document.createElement('img');
     newImage.src = character.img;
@@ -82,8 +86,7 @@ function updateCharacterSlot(slot, character, direction) {
         oldImage.remove();
         newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
         
-        // Update the text content
-        slot.querySelector('.stat-label').textContent = character.name;
+        // Update the stat text (except name, which is handled separately for timing)
         slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;
         slot.querySelector('.speed').textContent = `Speed: ${character.stats.speed}`;
         slot.querySelector('.magic').textContent = `Magic: ${character.stats.magic}`;
@@ -92,6 +95,12 @@ function updateCharacterSlot(slot, character, direction) {
         // Re-enable arrows
         arrows.forEach(arrow => arrow.disabled = false);
     }, ANIMATION_DURATION);
+
+    // Halfway through the animation, change the name and fade it in
+    setTimeout(() => {
+        statLabel.textContent = character.name;
+        statLabel.classList.remove('fade-out');
+    }, ANIMATION_DURATION / 2);
 }
 
 // Apply CSS filter to shift image color

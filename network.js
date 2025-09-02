@@ -1,113 +1,92 @@
 
 ```
-import { generateQRCode } from './qr.js';
-import { activatePlayerSlot } from './ui.js';
+import { Peer } from 'peerjs';
 
-const room = new WebsimSocket();
+let peer;
+let myPeerId = null;
 
-async function initializeNetwork() {
-    await room.initialize();
-    console.log('Websim initialized. Client ID:', room.clientId);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const joinId = urlParams.get('join');
-
-    if (joinId) {
-        // This is a client joining a game
-        console.log('Joining game of host:', joinId);
-        // In a real scenario, you might send a join request.
-        // For now, we assume joining is automatic by being in the same room.
-        // We'll let the host assign us a slot.
-    } else {
-        // This is the host
-        console.log('This client is the host.');
-        setupAsHost();
-    }
-
-    // Everyone subscribes to room state changes
-    room.subscribeRoomState(handleRoomStateUpdate);
-
-    // Everyone subscribes to presence to know who is connected
-    room.subscribePresence(handlePresenceUpdate);
-
-    // Hide start overlay and show character selection
-    document.getElementById('start-overlay').classList.add('hidden');
-    document.getElementById('qr-code-display').classList.remove('hidden');
-    initializeAudio(); // Start audio after user interaction with start screen
+function generatePeerId() {
+    // Generate a shorter, more readable ID
+    return 'achamps-' + Math.random().toString(36).substr(2, 6);
 }
 
-function setupAsHost() {
-    // Generate QR code for others to join
-    const joinUrl = `${window.location.origin}${window.location.pathname}?join=${room.clientId}`;
-    generateQRCode('qr-code-container-main', joinUrl);
-    generateQRCode('qr-code-container-ingame', joinUrl);
+function initializePeer(peerId) {
+    peer = new Peer(peerId, {
+        // Add PeerJS server options here if needed, e.g., for a self-hosted server
+    });
 
-    // Host takes the first slot
-    const initialRoomState = {
-        playerSlots: {
-            '1': {
-                clientId: room.clientId,
-                characterIndex: 0,
-                archerGender: 'male',
-            }
+    peer.on('open', (id) => {
+        myPeerId = id;
+        console.log('My peer ID is: ' + id);
+        showQrCode(id);
+    });
+
+    peer.on('connection', (conn) => {
+        console.log('Connected to:', conn.peer);
+        // Handle incoming connection
+    });
+
+    peer.on('error', (err) => {
+        console.error('PeerJS error:', err);
+        // Handle errors, e.g., ID is taken
+        if (err.type === 'unavailable-id') {
+            console.log(`ID ${peerId} is unavailable. Retrying with a new ID...`);
+            initializePeer(generatePeerId()); // Retry with a new ID
         }
-    };
-    room.updateRoomState(initialRoomState);
+    });
 }
 
-function handleRoomStateUpdate(roomState) {
-    console.log('Room state updated:', roomState);
-    if (roomState && roomState.playerSlots) {
-        // Update all player slots based on the shared state
-        for (const playerNum in roomState.playerSlots) {
-            const slotData = roomState.playerSlots[playerNum];
-            if (slotData) {
-                activatePlayerSlot(playerNum, slotData.clientId === room.clientId);
-            }
-        }
-    }
+function showQrCode(peerId) {
+    const qrContainer = document.getElementById('qr-code-container');
+    const qrCodeDiv = document.getElementById('qr-code');+
+
+    // Clear previous QR code if any
+    qrCodeDiv.innerHTML = ''; 
+
+    new QRCode(qrCodeDiv, {
+        text: peerId,
+        width: 128,
+        height: 128,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+    qrContainer.classList.remove('hidden');
 }
 
-function handlePresenceUpdate(presence) {
-    console.log("Presence updated:", presence);
+document.addEventListener('start-hosting', () => {
+    console.log("Starting session as host...");
+    const peerId = generatePeerId();
+    initializePeer(peerId);
+});
 
-    // Host-only logic: check for new players and assign them a slot
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('join')) { // Only the host should manage slots
-        const currentSlots = room.roomState.playerSlots || {};
-        const takenClientIds = Object.values(currentSlots).map(s => s.clientId);
+document.addEventListener('start-joining', (event) => {
+    const hostPeerId = event.detail.peerId;
+    console.log(`Attempting to join host: ${hostPeerId}`);
 
-        for (const clientId in presence) {
-            if (clientId !== room.clientId && !takenClientIds.includes(clientId)) {
-                // Found a new client that needs a slot
-                assignSlotToNewPlayer(clientId, currentSlots);
-                break; // Assign one player at a time
-            }
-        }
-    }
-}
+    // We don't need a specific ID to connect, PeerJS will assign one.
+    if (!peer) {
+        peer = new Peer();
+        peer.on('open', (id) => {
+            myPeerId = id;
+            console.log('My peer ID is: ' + id);
 
-function assignSlotToNewPlayer(clientId, currentSlots) {
-    console.log(`Assigning slot to new player: ${clientId}`);
-    // Find the first available slot (from 2 to 4)
-    for (let i = 2; i <= 4; i++) {
-        const playerNum = i.toString();
-        if (!currentSlots[playerNum]) {
-            room.updateRoomState({
-                playerSlots: {
-                    ...currentSlots,
-                    [playerNum]: {
-                        clientId: clientId,
-                        characterIndex: i - 1,
-                        archerGender: 'male',
-                    }
-                }
+            // Now that we have an ID, connect to the host
+            const conn = peer.connect(hostPeerId);
+            conn.on('open', () => {
+                console.log(`Connection to ${hostPeerId} established.`);
+                // Send a 'hello' message or player data
+                conn.send('Hello from new player!');
             });
-            console.log(`Assigned player ${clientId} to slot ${playerNum}`);
-            return; // Exit after assigning
-        }
+        });
+        peer.on('error', (err) => console.error('PeerJS error:', err));
+    } else {
+        // Peer object already exists, just connect
+        const conn = peer.connect(hostPeerId);
+        conn.on('open', () => {
+            console.log(`Connection to ${hostPeerId} established.`);
+            conn.send('Hello from new player!');
+        });
     }
-    console.log("No available slots for new player.");
-}
-
-export { initializeNetwork, room };
+});

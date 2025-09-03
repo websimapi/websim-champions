@@ -145,6 +145,8 @@ function startHosting() {
     initializeAudio();
     
     console.log('Started Scan to Play mode as host with ID:', peerId);
+    mySlotIndex = 0;
+    applyMobileSingleSlotMode();
 }
 
 async function startCameraScanner() {
@@ -239,6 +241,8 @@ function handleHostMessage(data) {
             console.log('Assigned to slot:', data.slot);
             playerSlots = data.playerSlots;
             updateCharacterSlotsUI(); // Full sync on first join
+            mySlotIndex = data.slot;
+            applyMobileSingleSlotMode();
             break;
             
         case 'player_slots_update':
@@ -265,4 +269,35 @@ function handleHostMessage(data) {
             }
             break;
     }
+}
+
+function applyMobileSingleSlotMode() {
+    if (!document.body.classList.contains('mobile')) return;
+    document.querySelectorAll('.character-slot').forEach((el, i) => {
+        el.classList.toggle('own-slot', i === mySlotIndex);
+    });
+    document.body.classList.add('mobile-single-slot');
+    renderPlayersStrip();
+}
+window.applyMobileSingleSlotMode = applyMobileSingleSlotMode;
+
+function renderPlayersStrip() {
+    const strip = document.getElementById('players-strip');
+    if (!strip) return;
+    strip.innerHTML = '';
+    const me = mySlotIndex;
+    playerSlots.forEach((slot, i) => {
+        if (!slot.occupied || i === me) return;
+        const c = characters[slot.characterIndex];
+        const imgSrc = c.genders ? c.genders[slot.gender || 'male'].img : c.img;
+        const cached = (window.characterImageCache?.[imgSrc] || {})[playerSlots[i].color];
+        const chip = document.createElement('div');
+        chip.className = 'player-chip';
+        chip.dataset.color = playerSlots[i].color;
+        const img = document.createElement('img');
+        img.src = cached || imgSrc;
+        img.alt = c.name;
+        chip.appendChild(img);
+        strip.appendChild(chip);
+    });
 }

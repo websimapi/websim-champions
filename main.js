@@ -15,6 +15,7 @@ let peerId = null;
 let connections = [];
 let isHost = false;
 let gameMode = null; // 'scan' or 'realtime'
+let mySlotIndex = 0;
 let playerSlots = [
     { occupied: true, color: 'blue', characterIndex: 0, playerId: 'host', gender: 'male' }, // Player 1 (host)
     { occupied: false, color: 'green', characterIndex: 1, playerId: null, gender: 'male' }, // Player 2
@@ -249,4 +250,5 @@ function updateCharacterSlotsUI() {
             slot.classList.add('empty');
         }
     });
+    if (typeof renderPlayersStrip === 'function') renderPlayersStrip();
 }

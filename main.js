@@ -22,6 +22,7 @@ let playerSlots = [
     { occupied: false, color: 'yellow', characterIndex: 2, playerId: null, gender: 'male' }, // Player 3
     { occupied: false, color: 'red', characterIndex: 3, playerId: null, gender: 'male' }  // Player 4
 ];
+let suppressUIAnimationOnce = false;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -182,6 +183,9 @@ function handleClientMessage(conn, data) {
                 }
             }
             break;
+        case 'slot_switch':
+            hostAssignClientToSlot(conn.peer, data.targetIndex);
+            break;
     }
 }
 
@@ -219,6 +223,7 @@ function updateCharacterSlotsUI() {
 
         if (playerSlot.occupied) {
             slot.classList.remove('empty');
+            const skull = slot.querySelector('.skull-overlay'); if (skull) skull.remove();
             
             let characterChanged = playerSlot.characterIndex !== currentCharacterIndex;
             let genderChanged = false;
@@ -228,9 +233,9 @@ function updateCharacterSlotsUI() {
 
             // Only update if there's a change
             if (characterChanged || genderChanged) {
-                 // The 'fade' direction is a sensible default for general state updates.
-                 // More specific animation directions are handled by 'character_change' and 'gender_change' events.
-                updateCharacterSlot(slot, characters[playerSlot.characterIndex], 'fade');
+                if (!suppressUIAnimationOnce) {
+                    updateCharacterSlot(slot, characters[playerSlot.characterIndex], 'fade');
+                }
             }
             
             // Always ensure data attributes are in sync, even if no visual update is needed right now.
@@ -248,7 +253,80 @@ function updateCharacterSlotsUI() {
 
         } else {
             slot.classList.add('empty');
+            const wrap = slot.querySelector('.character-image-wrapper');
+            if (wrap && !slot.querySelector('.skull-overlay')) {
+                const skull = document.createElement('div');
+                skull.className = 'skull-overlay';
+                skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+                wrap.appendChild(skull);
+            }
+            
+            // Add "waiting for player" text if it doesn't exist
+            const statsContainer = slot.querySelector('.character-stats');
+            if (statsContainer && !statsContainer.querySelector('.waiting-for-player')) {
+                const waitingText = document.createElement('div');
+                waitingText.className = 'waiting-for-player';
+                waitingText.innerHTML = 'Waiting for a player to join<span class="ellipsis"></span>';
+                statsContainer.appendChild(waitingText);
+            }
         }
     });
+    suppressUIAnimationOnce = false;
     if (typeof renderPlayersStrip === 'function') renderPlayersStrip();
+}
+
+function hostAssignClientToSlot(peerIdToMove, targetIndex) {
+    const target = playerSlots[targetIndex];
+    if (!target || target.occupied) return;
+    const current = playerSlots.find(s => s.playerId === peerIdToMove);
+    if (!current) return;
+    target.occupied = true; target.playerId = peerIdToMove; target.characterIndex = current.characterIndex; target.gender = current.gender;
+    current.occupied = false; current.playerId = null;
+    broadcastToClients({ type: 'player_slots_update', playerSlots });
+    const conn = connections.find(c => c.peer === peerIdToMove);
+    if (conn && conn.open) {
+        conn.send({ type: 'slot_assignment', slot: targetIndex, playerSlots });
+    }
+    updateCharacterSlotsUI();
+}
+
+function hostSwitchToSlot(targetIndex) {
+    if (!isHost) return;
+    const target = playerSlots[targetIndex];
+    if (!target || target.occupied) return;
+    const prevIndex = mySlotIndex;
+    const current = playerSlots[mySlotIndex];
+    target.occupied = true; target.playerId = 'host'; target.characterIndex = current.characterIndex; target.gender = current.gender;
+    current.occupied = false; current.playerId = null;
+    mySlotIndex = targetIndex;
+    suppressUIAnimationOnce = true;
+    broadcastToClients({ type: 'player_slots_update', playerSlots });
+    updateCharacterSlotsUI();
+    const prevEl = document.querySelector(`.character-slot[data-player="${prevIndex + 1}"]`);
+    if (prevEl) {
+        prevEl.classList.add('empty');
+        const wrap = prevEl.querySelector('.character-image-wrapper');
+        wrap && wrap.querySelectorAll('.character-image').forEach(img => { if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl); img.remove(); });
+        // add skull overlay to the slot we vacated
+        if (wrap && !prevEl.querySelector('.skull-overlay')) {
+            const skull = document.createElement('div');
+            skull.className = 'skull-overlay';
+            skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+            wrap.appendChild(skull);
+        }
+    }
+    const targetEl = document.querySelector(`.character-slot[data-player="${targetIndex + 1}"]`);
+    if (targetEl) {
+        const twrap = targetEl.querySelector('.character-image-wrapper');
+        if (twrap) twrap.querySelectorAll('.character-image').forEach(img => { if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl); img.remove(); });
+        const skull = targetEl.querySelector('.skull-overlay');
+        if (skull) {
+            skull.classList.add('slide-out-to-left');
+            setTimeout(() => { skull.remove(); targetEl.classList.remove('empty'); updateCharacterSlot(targetEl, characters[target.characterIndex], 'right'); }, 500);
+        } else {
+            targetEl.classList.remove('empty');
+            updateCharacterSlot(targetEl, characters[target.characterIndex], 'right');
+        }
+    }
+    applyMobileSingleSlotMode();
 }

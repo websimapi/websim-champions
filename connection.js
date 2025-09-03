@@ -102,6 +102,8 @@ function startHosting() {
     
     // Hide start overlay
     document.getElementById('start-overlay').classList.add('hidden');
+    // Show character selection screen
+    document.querySelector('.character-selection').classList.add('visible');
     
     // Show mini QR code in top right
     document.getElementById('host-qr-display').classList.add('visible');
@@ -187,6 +189,8 @@ function joinGame(hostId) {
         
         // Hide start overlay
         document.getElementById('start-overlay').classList.add('hidden');
+        // Show character selection screen
+        document.querySelector('.character-selection').classList.add('visible');
         
         // Initialize audio
         initializeAudio();

@@ -4,7 +4,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: #1a1a2e;
+    background-color: #1a1a2e; /* Fallback color */
+    background-image: 
+        radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.85) 100%), 
+        url('/main-menu-background.png');
+    background-size: cover;
+    background-position: center;
     display: flex;
     justify-content: center;
     align-items: center;

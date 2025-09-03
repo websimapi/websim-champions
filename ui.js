@@ -300,6 +300,7 @@ function renderPlayersStrip() {
         img.src = cached || imgSrc;
         img.alt = c.name;
         chip.appendChild(img);
+        colorizeChipImage(img, c, playerSlots[i].color);
         strip.appendChild(chip);
     });
 }
@@ -316,9 +317,10 @@ function updatePlayerChip(slotIndex, direction = 'fade') {
     const oldImg = chip.querySelector('img');
     const newImg = document.createElement('img');
     newImg.src = cached || src; newImg.alt = c.name;
+    chip.appendChild(newImg);
+    colorizeChipImage(newImg, c, slot.color);
     if (direction === 'fade') newImg.style.opacity = '0';
     else newImg.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
-    chip.appendChild(newImg);
     if (oldImg) {
         if (direction === 'fade') {
             oldImg.style.transition = 'opacity 500ms ease-in-out';
@@ -331,4 +333,19 @@ function updatePlayerChip(slotIndex, direction = 'fade') {
         setTimeout(()=>{ oldImg.remove(); newImg.style.opacity=''; newImg.classList.remove('slide-in-from-left','slide-in-from-right'); }, 500);
     }
     try { playSound(stoneShiftBuffer); } catch(e) {}
+}
+
+function colorizeChipImage(img, character, colorName) {
+    const cached = (window.characterImageCache?.[(character.genders ? character.genders[(playerSlots.find(s=>s.color===colorName)?.gender || 'male')]?.img : character.img)] || {})[colorName];
+    if (cached) { img.src = cached; return; }
+    processAndCacheImage(img, character, colorName).then(blobUrl => {
+        if (blobUrl) {
+            img.src = blobUrl;
+            img.dataset.blobUrl = blobUrl;
+        } else {
+            const targetHue = slotColors[colorName];
+            const angle = targetHue - character.baseHue;
+            img.style.filter = `hue-rotate(${angle}deg)`;
+        }
+    });
 }

@@ -3,6 +3,7 @@ let audioContext;
 let stoneShiftBuffer;
 let backgroundMusicBuffer;
 let isMusicPlaying = false;
+let stoneShiftLoading = false;
 
 // Function to load a sound
 async function loadSound(url) {
@@ -20,7 +21,14 @@ async function loadSound(url) {
 
 // Function to play a sound
 function playSound(buffer) {
-    if (!audioContext || !buffer) return;
+    if (!audioContext) return;
+    if (!buffer) {
+        if (!stoneShiftLoading) {
+            stoneShiftLoading = true;
+            loadSound('stone_shift.mp3').then(b => { stoneShiftBuffer = b; stoneShiftLoading = false; if (b) playSound(b); });
+        }
+        return;
+    }
 
     // Resume AudioContext if it's in a suspended state (required by browser autoplay policies)
     if (audioContext.state === 'suspended') {

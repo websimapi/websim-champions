@@ -208,3 +208,5 @@ async function preloadAllCharacterImages() {
     await Promise.all(promises);
     console.log("Preloading complete.", characterImageCache);
 }
+
+window.characterImageCache = characterImageCache;

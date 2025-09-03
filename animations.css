@@ -37,3 +37,25 @@
   100% { transform: translate(-50%, calc(-50% + 3px)) rotate(360deg); filter: drop-shadow(0 0 14px rgba(102,199,255,0.98)); }
 }
 
+@keyframes flame-flicker {
+  0%, 100% {
+    transform: scale(1) rotate(-1deg);
+    opacity: 0.8;
+  }
+  20% {
+    transform: scale(1.05, 0.95) rotate(2deg);
+    opacity: 0.9;
+  }
+  40% {
+    transform: scale(0.98, 1.02) rotate(-2deg);
+    opacity: 0.85;
+  }
+  60% {
+    transform: scale(1.02, 0.98) rotate(1deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95, 1.05) rotate(-1deg);
+    opacity: 0.8;
+  }
+}

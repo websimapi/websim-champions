@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeStartOverlay();
 });
 
+// We need this function for the skull glow colors. Let's import it.
+import { hslToRgb } from 'color-utils';
+
 function initializePeerJS() {
     peer = new Peer();
     
@@ -51,17 +54,6 @@ function initializePeerJS() {
         peerId = id;
         console.log('PeerJS initialized with ID:', id);
         generateHostQRCodes(id);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const hostIdFromUrl = urlParams.get('ID');
-        if (hostIdFromUrl) {
-            // If we have an ID in the URL, we're a client, so try to join.
-            // A small delay might be needed for the UI to be ready.
-            setTimeout(() => {
-                const joinBtn = document.getElementById('join-btn');
-                if (joinBtn) joinBtn.click();
-            }, 100);
-        }
     });
 
     peer.on('connection', (conn) => {
@@ -269,7 +261,16 @@ function updateCharacterSlotsUI() {
             if (wrap && !slot.querySelector('.skull-overlay')) {
                 const skull = document.createElement('div');
                 skull.className = 'skull-overlay';
-                skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+
+                // Set glow color via CSS variable
+                const slotColorName = slot.dataset.color;
+                const targetHue = slotColors[slotColorName];
+                // Convert HSL to RGB string for CSS
+                const rgbColor = hslToRgb(targetHue, 1, 0.55); // Use 1 for sat, 0.55 for a bright lightness
+                const colorString = `rgb(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b})`;
+                skull.style.setProperty('--glow-color', colorString);
+                
+                skull.innerHTML = '<img src="/skull.png" alt="Empty Slot"><div class="nose-glow"></div>';
                 wrap.appendChild(skull);
             }
             
@@ -323,7 +324,16 @@ function hostSwitchToSlot(targetIndex) {
         if (wrap && !prevEl.querySelector('.skull-overlay')) {
             const skull = document.createElement('div');
             skull.className = 'skull-overlay';
-            skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+
+            // Set glow color via CSS variable
+            const slotColorName = prevEl.dataset.color;
+            const targetHue = slotColors[slotColorName];
+            // Convert HSL to RGB string for CSS
+            const rgbColor = hslToRgb(targetHue, 1, 0.55); // Use 1 for sat, 0.55 for a bright lightness
+            const colorString = `rgb(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b})`;
+            skull.style.setProperty('--glow-color', colorString);
+            
+            skull.innerHTML = '<img src="/skull.png" alt="Empty Slot"><div class="nose-glow"></div>';
             wrap.appendChild(skull);
         }
     }

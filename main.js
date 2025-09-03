@@ -329,4 +329,5 @@ function hostSwitchToSlot(targetIndex) {
         }
     }
     applyMobileSingleSlotMode();
+    updateMobileSlotPicker(); // Update the slot pills for mobile
 }

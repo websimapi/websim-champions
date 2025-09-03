@@ -474,25 +474,26 @@ body {
     opacity: 0.8;
 }
 
-/* Mobile optimizations for both orientations */
+/* Mobile optimizations for both portrait and landscape */
 @media (max-width: 900px) {
     .character-selection {
         padding: 10px 0;
     }
-    
+
     .characters-grid {
         gap: 2vw;
         padding: 0 2vw;
     }
-    
+
     .character-slot {
-        flex-basis: 22%;
-        min-width: 140px;
+        flex: 1 1 22%;
+        min-width: 150px;
+        max-width: 200px;
     }
 
     .title {
         font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
         margin-top: 0.5rem;
     }
     
@@ -501,34 +502,41 @@ body {
         margin-bottom: 0.5rem;
         font-size: 1.1rem;
     }
+
+    /* Better touch targets for mobile */
+    .arrow {
+        padding: 8px 12px;
+        font-size: 1.4rem;
+    }
+
+    .gender-toggle {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
 }
 
-/* Portrait mode optimizations */
-@media (max-width: 900px) and (orientation: portrait) {
+/* Portrait mobile optimization */
+@media (max-width: 768px) and (orientation: portrait) {
     .characters-grid {
         flex-wrap: wrap;
         justify-content: center;
-        overflow-y: auto;
+        gap: 3vw;
         overflow-x: visible;
-        scroll-snap-type: y mandatory;
-        max-height: 70vh;
+        overflow-y: auto;
+        scroll-snap-type: none;
     }
-    
+
     .character-slot {
-        flex-basis: 45%;
+        flex: 1 1 45%;
         min-width: 140px;
-        max-width: 180px;
-        scroll-snap-align: start;
+        max-width: 160px;
+        margin-bottom: 1rem;
     }
-    
+
     .title {
         font-size: 2.2rem;
-        margin: 0.5rem 0;
-    }
-    
-    .character-selection {
-        padding: 20px 0;
-        gap: 10px;
+        margin-bottom: 0.8rem;
     }
 }
 
@@ -558,40 +566,27 @@ body {
     .character-stats div {
         font-size: 0.7rem;
     }
-    
-    /* Better touch targets */
-    .arrow {
-        padding: 8px 12px;
-        font-size: 1.4rem;
-    }
-    
-    .gender-toggle {
-        width: 32px;
-        height: 32px;
-        font-size: 1rem;
-    }
-}
 
-/* Portrait mode for smaller screens */
-@media (max-width: 768px) and (orientation: portrait) {
-    .character-slot {
-        flex-basis: 46%;
-        margin-bottom: 10px;
+    /* Improved mobile start overlay */
+    .start-title {
+        font-size: 3rem;
     }
-    
-    .characters-grid {
-        gap: 3vw;
-        padding: 0 3vw;
+
+    .mode-btn {
+        font-size: 1.1rem;
+        padding: 10px 20px;
     }
 }
 
 @media (max-width: 640px) {
     .character-slot {
-        max-width: 140px;
+        flex: 1 1 42%;
+        min-width: 130px;
+        max-width: 150px;
     }
-    
+
     .characters-grid {
-        gap: 1.5vw;
+        gap: 2vw;
     }
 
     .character-name {
@@ -609,21 +604,27 @@ body {
     .character-stats div {
         font-size: 0.6rem;
     }
+
+    .start-title {
+        font-size: 2.5rem;
+    }
 }
 
-/* Portrait mode for smallest screens */
-@media (max-width: 640px) and (orientation: portrait) {
+/* Small portrait screens */
+@media (max-width: 480px) and (orientation: portrait) {
     .characters-grid {
-        max-height: 65vh;
-        gap: 4vw;
-        padding: 0 4vw;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
     }
-    
+
     .character-slot {
-        flex-basis: 44%;
-        min-width: 120px;
+        flex: none;
+        width: 80%;
+        max-width: 250px;
+        height: 300px;
     }
-    
+
     .title {
         font-size: 1.8rem;
     }

@@ -24,7 +24,7 @@ let playerSlots = [
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    forceLandscape();
+    initializeMobile(); // Changed from forceLandscape()
     initializeRelicCursor();
     
     // Preload all character images before doing anything else

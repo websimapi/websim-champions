@@ -2,6 +2,7 @@
 let audioContext;
 let stoneShiftBuffer;
 let backgroundMusicBuffer;
+let musicSourceNode = null; // To keep track of the music source
 let isMusicPlaying = false;
 let stoneShiftLoading = false;
 
@@ -29,14 +30,11 @@ function playSound(buffer) {
         }
         return;
     }
-
-    // Resume AudioContext if it's in a suspended state (required by browser autoplay policies)
+    
+    // It's very likely the context is running if sound effects are played,
+    // but a resume check is cheap.
     if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            if (!isMusicPlaying) {
-                playBackgroundMusic();
-            }
-        });
+        audioContext.resume();
     }
 
     const source = audioContext.createBufferSource();
@@ -49,49 +47,54 @@ function playBackgroundMusic() {
     if (!audioContext || !backgroundMusicBuffer || isMusicPlaying) return;
 
     if (audioContext.state !== 'running') {
-        // Wait for user interaction to start music
+        console.log('AudioContext not running, music delayed.');
         return;
     }
 
     isMusicPlaying = true;
     
-    const source = audioContext.createBufferSource();
-    source.buffer = backgroundMusicBuffer;
+    musicSourceNode = audioContext.createBufferSource();
+    musicSourceNode.buffer = backgroundMusicBuffer;
+    musicSourceNode.loop = true; // Loop the music
 
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0.5; // Set volume to half
 
-    source.connect(gainNode);
+    musicSourceNode.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    source.start(0);
+    musicSourceNode.start(0);
 
-    source.onended = () => {
-        isMusicPlaying = false;
-        setTimeout(playBackgroundMusic, 5000); // Wait 5 seconds before repeating
-    };
+    console.log('Background music started.');
 }
 
-// Initialize audio system with user interaction
+// Initialize audio system
 async function initializeAudio() {
-    try {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
+    if (audioContext) return; // Already initialized
 
-        // Resume context if it was suspended
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Listen for state changes to automatically play music when ready
+        audioContext.onstatechange = () => {
+            console.log(`AudioContext state changed to: ${audioContext.state}`);
+            if (audioContext.state === 'running') {
+                playBackgroundMusic();
+            }
+        };
+
+        // Try to resume immediately. This works if the page has been interacted with before.
         if (audioContext.state === 'suspended') {
             await audioContext.resume();
         }
 
-        // Preload sounds now that we have user interaction
-        if (!stoneShiftBuffer) {
-             stoneShiftBuffer = await loadSound('stone_shift.mp3');
-        }
-        if (!backgroundMusicBuffer) {
-            backgroundMusicBuffer = await loadSound('/Ancient_Champions.ogg');
-        }
+        // Load all sounds
+        const soundsToLoad = [
+            loadSound('stone_shift.mp3').then(b => stoneShiftBuffer = b),
+            loadSound('/Ancient_Champions.ogg').then(b => backgroundMusicBuffer = b)
+        ];
+        await Promise.all(soundsToLoad);
         
-        // Start background music
+        // Attempt to play background music right away
         playBackgroundMusic();
 
     } catch (e) {

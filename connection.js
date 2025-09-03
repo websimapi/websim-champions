@@ -106,8 +106,11 @@ function startHosting() {
     // Show mini QR code in top right
     document.getElementById('host-qr-display').classList.add('visible');
     
-    // Initialize audio
-    initializeAudio();
+    // Audio is now initialized on page load.
+    // We just need to ensure the context is resumed if it was suspended.
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
     
     console.log('Started Scan to Play mode as host with ID:', peerId);
     mySlotIndex = 0;
@@ -188,8 +191,11 @@ function joinGame(hostId) {
         // Hide start overlay
         document.getElementById('start-overlay').classList.add('hidden');
         
-        // Initialize audio
-        initializeAudio();
+        // Audio is now initialized on page load.
+        // We just need to ensure the context is resumed if it was suspended.
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
     });
     
     conn.on('data', (data) => {

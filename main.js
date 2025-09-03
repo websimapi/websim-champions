@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeMobile(); // Changed from forceLandscape()
     initializeRelicCursor();
     
+    // Attempt to initialize audio early.
+    // This may start music on some browsers, or at least prepare the AudioContext.
+    await initializeAudio();
+
     // Preload all character images before doing anything else
     await preloadAllCharacterImages();
 

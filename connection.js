@@ -9,17 +9,19 @@ function initializeStartOverlay() {
     const realtimeBtn = document.getElementById('realtime-mode-btn');
     const joinBtn = document.getElementById('join-btn');
     const joinControlGroup = document.querySelector('.join-control-group');
+    const startTitle = document.querySelector('.start-title');
 
     // Check for join ID in URL
     const urlParams = new URLSearchParams(window.location.search);
     const hostIdFromUrl = urlParams.get('ID');
     if (hostIdFromUrl) {
-        joinInput.value = hostIdFromUrl;
+        startTitle.style.display = 'none';
         hostBtn.style.display = 'none';
         realtimeBtn.style.display = 'none';
         document.querySelector('.mode-description').style.display = 'none';
         joinControlGroup.style.display = 'none';
         joinBtn.style.display = 'block';
+        joinBtn.textContent = `Join ${hostIdFromUrl}`;
         
         joinBtn.addEventListener('click', () => {
             if (peerId) {

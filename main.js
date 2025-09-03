@@ -51,6 +51,17 @@ function initializePeerJS() {
         peerId = id;
         console.log('PeerJS initialized with ID:', id);
         generateHostQRCodes(id);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostIdFromUrl = urlParams.get('ID');
+        if (hostIdFromUrl) {
+            // If we have an ID in the URL, we're a client, so try to join.
+            // A small delay might be needed for the UI to be ready.
+            setTimeout(() => {
+                const joinBtn = document.getElementById('join-btn');
+                if (joinBtn) joinBtn.click();
+            }, 100);
+        }
     });
 
     peer.on('connection', (conn) => {

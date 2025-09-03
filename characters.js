@@ -22,7 +22,15 @@ const characterImageCache = {};
 // Update a character slot with new character data
 function updateCharacterSlot(slot, character, direction) {
     const imageWrapper = slot.querySelector('.character-image-wrapper');
-    const oldImage = imageWrapper.querySelector('.character-image');
+    // Cleanup: ensure only the topmost image remains before we animate
+    const imgs = imageWrapper.querySelectorAll('.character-image');
+    if (imgs.length > 1) {
+        for (let i = 0; i < imgs.length - 1; i++) {
+            if (imgs[i].dataset.blobUrl) URL.revokeObjectURL(imgs[i].dataset.blobUrl);
+            imgs[i].remove();
+        }
+    }
+    let oldImage = imageWrapper.querySelector('.character-image');
     const arrows = slot.querySelectorAll('.arrow');
     const nameText = slot.querySelector('.character-name-text');
     const color = slot.dataset.color;
@@ -74,15 +82,19 @@ function updateCharacterSlot(slot, character, direction) {
         applyColorShaderToImage(newImage, color);
     }
 
-    // Animate old image out
-    if (direction === 'fade') {
-        oldImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
-        oldImage.style.opacity = '0';
-        newImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
-        // Delay setting opacity to 1 to allow transition to catch it
-        requestAnimationFrame(() => requestAnimationFrame(() => newImage.style.opacity = '1' ));
+    // Animate old image out (guard if none)
+    if (oldImage) {
+        if (direction === 'fade') {
+            oldImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
+            oldImage.style.opacity = '0';
+            newImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
+            requestAnimationFrame(() => requestAnimationFrame(() => newImage.style.opacity = '1'));
+        } else {
+            oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+        }
     } else {
-        oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+        // No previous image, just reveal new one
+        newImage.style.opacity = '1';
     }
 
     // Play sound
@@ -91,10 +103,10 @@ function updateCharacterSlot(slot, character, direction) {
     // After animation is complete, clean up and update stats
     setTimeout(() => {
         // Revoke old blob url if it exists to prevent memory leaks
-        if (oldImage.dataset.blobUrl) {
+        if (oldImage && oldImage.dataset.blobUrl) {
             URL.revokeObjectURL(oldImage.dataset.blobUrl);
         }
-        oldImage.remove();
+        if (oldImage) oldImage.remove();
         newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
         newImage.style.opacity = '';
         newImage.style.transition = '';

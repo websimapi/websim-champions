@@ -148,8 +148,9 @@
 
 .host-qr-mini {
     position: absolute;
-    top: 20px;
+    top: 50%;
     right: 20px;
+    transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.8);
     padding: 10px;
     border-radius: 8px;

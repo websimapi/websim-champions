@@ -73,7 +73,7 @@ function initBackgroundShader() {
             p3 *= norm.w;
             vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
             m = m * m;
-            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,p3) ) );
         }
 
         // Fractal Brownian Motion for more detail
@@ -130,12 +130,12 @@ function initBackgroundShader() {
             n = (n + 1.0) / 2.0; // Remap from [-1, 1] to [0, 1]
 
             // Increase contrast to create more dark areas and make the fog "wisps" more defined
-            n = pow(n, 2.0);
+            n = pow(n, 1.8);
             
             vec3 color = palette(n);
 
             // Darken the overall effect to make it more subtle
-            color *= 0.7;
+            color *= 0.9;
 
             gl_FragColor = vec4(color, 1.0);
         }

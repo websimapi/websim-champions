@@ -64,6 +64,9 @@ body {
     visibility: hidden; /* Hide by default */
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    background-image: url('/background-select-screen.png');
+    background-size: cover;
+    background-position: center;
     background-color: transparent; /* Allow background shader to show through */
 }
 

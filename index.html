@@ -126,13 +126,8 @@
         <div class="start-content">
             <h2 class="start-title">Ancient Champions</h2>
             <div class="game-mode-selection">
-                <div class="scan-to-play-section">
-                    <button id="scan-to-play-btn" class="mode-btn scan-btn">Scan To Play</button>
-                    <div id="host-qr-container" class="qr-container">
-                        <canvas id="host-qr-code"></canvas>
-                        <p class="qr-label">Share this code to play with friends</p>
-                    </div>
-                </div>
+                <button id="host-btn" class="mode-btn host-btn">Host Game</button>
+                <button id="scan-to-play-btn" class="mode-btn scan-btn">Scan To Join</button>
                 <button id="realtime-mode-btn" class="mode-btn realtime-btn disabled">Realtime Mode</button>
                 <p class="mode-description">Coming Soon</p>
             </div>
@@ -141,6 +136,15 @@
 
     <div id="host-qr-display" class="host-qr-mini">
         <canvas id="mini-qr-code"></canvas>
+    </div>
+
+    <div id="qr-code-overlay" class="qr-overlay hidden">
+        <div class="qr-content">
+            <h3>Scan this code to join the game</h3>
+            <canvas id="fullscreen-qr-code"></canvas>
+            <p>Your Host ID: <span id="peer-id-display"></span></p>
+            <button id="close-qr-overlay" class="close-btn">✕</button>
+        </div>
     </div>
 
     <div id="camera-scanner" class="camera-overlay hidden">

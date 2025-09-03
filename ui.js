@@ -111,22 +111,25 @@ function canControlSlot(slotIndex) {
 // Set up the start overlay
 function initializeStartOverlay() {
     const startOverlay = document.getElementById('start-overlay');
+    const hostBtn = document.getElementById('host-btn');
     const scanBtn = document.getElementById('scan-to-play-btn');
     const realtimeBtn = document.getElementById('realtime-mode-btn');
     
-    scanBtn.addEventListener('click', () => {
+    hostBtn.addEventListener('click', () => {
         if (peerId) {
-            // Check if we want to host or scan to join
-            if (scanBtn.textContent === 'Scan To Play') {
-                // Switch to camera mode
-                scanBtn.textContent = 'Host Game';
-                startCameraScanner();
-            } else {
-                // Start as host
-                startScanToPlayMode();
-            }
+            startHosting();
         } else {
             console.log('PeerJS not ready yet');
+            alert('Connection service is not ready, please wait a moment.');
+        }
+    });
+
+    scanBtn.addEventListener('click', () => {
+        if (peerId) {
+            startCameraScanner();
+        } else {
+            console.log('PeerJS not ready yet');
+            alert('Connection service is not ready, please wait a moment.');
         }
     });
 
@@ -134,9 +137,15 @@ function initializeStartOverlay() {
         // Disabled for now
         console.log('Realtime mode not implemented yet');
     });
+
+    const qrOverlay = document.getElementById('qr-code-overlay');
+    const closeQrBtn = document.getElementById('close-qr-overlay');
+    closeQrBtn.addEventListener('click', () => {
+        qrOverlay.classList.add('hidden');
+    });
 }
 
-function startScanToPlayMode() {
+function startHosting() {
     gameMode = 'scan';
     isHost = true;
     
@@ -146,6 +155,10 @@ function startScanToPlayMode() {
     // Show mini QR code in top right
     document.getElementById('host-qr-display').classList.add('visible');
     
+    // Show fullscreen QR code overlay
+    const qrOverlay = document.getElementById('qr-code-overlay');
+    qrOverlay.classList.remove('hidden');
+
     // Initialize audio
     initializeAudio();
     

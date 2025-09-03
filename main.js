@@ -48,7 +48,7 @@ function initializePeerJS() {
     peer.on('open', (id) => {
         peerId = id;
         console.log('PeerJS initialized with ID:', id);
-        generateHostQRCode(id);
+        generateHostQRCodes(id);
     });
 
     peer.on('connection', (conn) => {
@@ -61,23 +61,28 @@ function initializePeerJS() {
     });
 }
 
-function generateHostQRCode(peerId) {
-    const qr = new QRious({
-        element: document.getElementById('host-qr-code'),
-        value: peerId,
-        size: 200,
-        foreground: '#ffffff',
-        background: 'transparent'
-    });
-
-    // Also create mini QR code for in-game display
-    const miniQr = new QRious({
+function generateHostQRCodes(id) {
+    // Generate mini QR code for in-game display
+    new QRious({
         element: document.getElementById('mini-qr-code'),
-        value: peerId,
+        value: id,
         size: 80,
         foreground: '#ffffff',
         background: 'transparent'
     });
+
+    // Generate fullscreen QR code
+    new QRious({
+        element: document.getElementById('fullscreen-qr-code'),
+        value: id,
+        size: Math.min(window.innerWidth, window.innerHeight) * 0.6,
+        foreground: '#ffffff',
+        background: 'transparent',
+        padding: 20
+    });
+
+    // Display the Peer ID text
+    document.getElementById('peer-id-display').textContent = id;
 }
 
 function handleIncomingConnection(conn) {

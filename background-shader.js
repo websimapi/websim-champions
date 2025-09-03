@@ -1,20 +1,21 @@
-function initializeBackgroundShader() {
-    const canvas = document.getElementById('background-shader');
+// New file for the WebGL background shader
+function initBackgroundShader() {
+    const canvas = document.getElementById('background-canvas');
     if (!canvas) {
-        console.error("Background shader canvas not found!");
+        console.error("Background canvas not found!");
         return;
     }
 
     const gl = canvas.getContext('webgl');
     if (!gl) {
-        console.warn("WebGL not supported, background shader will not run.");
+        console.warn("WebGL not supported, background shader will not be rendered.");
         return;
     }
 
     const vertexShaderSource = `
-        attribute vec2 a_position;
+        attribute vec4 a_position;
         void main() {
-            gl_Position = vec4(a_position, 0.0, 1.0);
+            gl_Position = a_position;
         }
     `;
 
@@ -23,75 +24,72 @@ function initializeBackgroundShader() {
         uniform vec2 u_resolution;
         uniform float u_time;
 
-        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-        vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-        vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
-
-        float snoise(vec2 v) {
-            const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-            vec2 i  = floor(v + dot(v, C.yy) );
-            vec2 x0 = v -   i + dot(i, C.xx);
-            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-            vec4 x12 = x0.xyxy + C.xxzz;
-            x12.xy -= i1;
-            i = mod289(i);
-            vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
-            vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-            m = m*m; m = m*m;
-            vec3 x = 2.0 * fract(p * C.www) - 1.0;
-            vec3 h = abs(x) - 0.5;
-            vec3 ox = floor(x + 0.5);
-            vec3 a0 = x - ox;
-            m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-            vec3 g;
-            g.x  = a0.x  * x0.x  + h.x  * x0.y;
-            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-            return 130.0 * dot(m, g);
+        // 2D Random function
+        float random(vec2 st) {
+            return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
         }
 
-        float fbm(vec2 p) {
+        // 2D Noise function
+        float noise(vec2 st) {
+            vec2 i = floor(st);
+            vec2 f = fract(st);
+            float a = random(i);
+            float b = random(i + vec2(1.0, 0.0));
+            float c = random(i + vec2(0.0, 1.0));
+            float d = random(i + vec2(1.0, 1.0));
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
+        }
+
+        // Fractal Brownian Motion
+        float fbm(vec2 st) {
             float value = 0.0;
             float amplitude = 0.5;
-            float frequency = 2.0;
+            float frequency = 0.0;
             for (int i = 0; i < 5; i++) {
-                value += amplitude * snoise(p * frequency);
+                value += amplitude * noise(st);
+                st *= 2.0;
                 amplitude *= 0.5;
-                frequency *= 2.0;
             }
             return value;
         }
 
+        // Color palette function
+        vec3 palette(float t) {
+            vec3 a = vec3(0.5, 0.5, 0.5);
+            vec3 b = vec3(0.5, 0.5, 0.5);
+            vec3 c = vec3(1.0, 1.0, 1.0);
+            vec3 d = vec3(0.00, 0.33, 0.67);
+            return a + b * cos(6.28318 * (c * t + d));
+        }
+
         void main() {
-            vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-            uv.x *= u_resolution.x / u_resolution.y; // Correct for aspect ratio
+            vec2 st = gl_FragCoord.xy / u_resolution.xy;
+            st.x *= u_resolution.x / u_resolution.y; // aspect ratio correction
 
-            vec2 p1 = uv;
-            p1.x += u_time * 0.05;
-            float noise1 = fbm(p1 * 1.5);
+            vec2 q = vec2(fbm(st + 0.00 * u_time * 0.1),
+                          fbm(st + vec2(1.0)));
 
-            vec2 p2 = uv;
-            p2.y -= u_time * 0.08;
-            float noise2 = fbm(p2 * 2.5 + 10.0);
+            vec2 r = vec2(fbm(q + 0.40 * u_time * 0.05),
+                          fbm(q + vec2(1.2) + 0.30 * u_time * 0.08));
 
-            float combined = (noise1 + noise2) * 0.5;
+            float f = fbm(st + r);
+            
+            vec3 color = mix(vec3(0.101961, 0.0, 0.2), // Dark violet/blue
+                             vec3(0.666667, 0.0, 0.0), // Deep red
+                             clamp((f * f) * 2.0, 0.0, 1.0));
 
-            // Define color palette
-            vec3 color1 = vec3(0.8, 0.1, 0.1); // Fiery Red
-            vec3 color2 = vec3(1.0, 0.5, 0.1); // Orange
-            vec3 color3 = vec3(0.1, 0.4, 0.8); // Cool Blue
-            vec3 color4 = vec3(0.1, 0.7, 0.4); // Mystic Green
-            vec3 color5 = vec3(0.9, 0.9, 0.2); // Bright Yellow
-            vec3 black = vec3(0.0, 0.0, 0.0); // Black for depth
+            color = mix(color,
+                        vec3(0.8, 0.2, 0.0), // Orange
+                        clamp(length(q), 0.0, 1.0));
 
-            // Mix colors based on noise
-            vec3 color = mix(black, color1, smoothstep(-0.4, -0.2, combined));
-            color = mix(color, color2, smoothstep(-0.2, 0.0, combined));
-            color = mix(color, color5, smoothstep(0.0, 0.2, combined));
-            color = mix(color, color4, smoothstep(0.1, 0.4, noise1));
-            color = mix(color, color3, smoothstep(0.2, 0.5, noise2));
+            color = mix(color,
+                        palette(length(r) + 0.5) * 0.5, // Add multi-color swirl
+                        clamp(length(r.x), 0.0, 1.0));
 
-            float vignette = 1.0 - smoothstep(0.6, 1.0, length(uv * 2.0 - 1.0));
-            gl_FragColor = vec4(color * vignette, 1.0);
+            color = (f * f * f + 0.6 * f * f + 0.5 * f) * color;
+
+            gl_FragColor = vec4(color, 1.0);
         }
     `;
 
@@ -101,9 +99,12 @@ function initializeBackgroundShader() {
         gl.compileShader(shader);
         const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
         if (success) return shader;
-        console.error("Shader compilation failed:", gl.getShaderInfoLog(shader));
+        console.error(gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
     }
+
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
     function createProgram(gl, vertexShader, fragmentShader) {
         const program = gl.createProgram();
@@ -112,12 +113,10 @@ function initializeBackgroundShader() {
         gl.linkProgram(program);
         const success = gl.getProgramParameter(program, gl.LINK_STATUS);
         if (success) return program;
-        console.error("Program linking failed:", gl.getProgramInfoLog(program));
+        console.error(gl.getProgramInfoLog(program));
         gl.deleteProgram(program);
     }
 
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
     const program = createProgram(gl, vertexShader, fragmentShader);
 
     const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
@@ -132,10 +131,9 @@ function initializeBackgroundShader() {
     function render(time) {
         time *= 0.001; // convert to seconds
 
-        // Resize canvas to match display size
+        // Resize canvas if needed
         const displayWidth = gl.canvas.clientWidth;
         const displayHeight = gl.canvas.clientHeight;
-
         if (gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight) {
             gl.canvas.width = displayWidth;
             gl.canvas.height = displayHeight;
@@ -157,6 +155,5 @@ function initializeBackgroundShader() {
 
         requestAnimationFrame(render);
     }
-
     requestAnimationFrame(render);
 }

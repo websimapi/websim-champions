@@ -28,6 +28,7 @@ let suppressUIAnimationOnce = false;
 document.addEventListener('DOMContentLoaded', async () => {
     initializeMobile(); // Changed from forceLandscape()
     initializeRelicCursor();
+    initBackgroundShader();
     
     // Preload all character images before doing anything else
     await preloadAllCharacterImages();
@@ -42,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Now initialize the rest of the app
     initializeCharacterSelection();
     initializeStartOverlay();
-    initializeBackgroundShader();
 });
 
 function initializePeerJS() {

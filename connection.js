@@ -105,6 +105,9 @@ function startHosting() {
     // Show character selection screen
     document.querySelector('.character-selection').classList.add('visible');
     
+    // Fade in background shader
+    document.getElementById('background-canvas').style.opacity = '1';
+
     // Show mini QR code in top right
     document.getElementById('host-qr-display').classList.add('visible');
     
@@ -192,6 +195,9 @@ function joinGame(hostId) {
         // Show character selection screen
         document.querySelector('.character-selection').classList.add('visible');
         
+        // Fade in background shader
+        document.getElementById('background-canvas').style.opacity = '1';
+
         // Initialize audio
         initializeAudio();
     });

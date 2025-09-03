@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Now initialize the rest of the app
     initializeCharacterSelection();
     initializeStartOverlay();
+    initializeBackgroundShader();
 });
 
 function initializePeerJS() {

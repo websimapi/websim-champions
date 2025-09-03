@@ -235,7 +235,6 @@ function joinGame(hostId) {
 
 function handleHostMessage(data) {
     const slotElement = document.querySelector(`.character-slot[data-player="${data.slotIndex + 1}"]`);
-
     switch (data.type) {
         case 'slot_assignment':
             console.log('Assigned to slot:', data.slot);
@@ -256,6 +255,7 @@ function handleHostMessage(data) {
                 playerSlots[data.slotIndex].characterIndex = data.characterIndex;
                 updateCharacterSlot(slotElement, characters[data.characterIndex], data.direction);
             }
+            updatePlayerChip(data.slotIndex, data.direction);
             break;
             
         case 'gender_change':
@@ -267,6 +267,7 @@ function handleHostMessage(data) {
                 });
                 updateCharacterSlot(slotElement, characters[playerSlots[data.slotIndex].characterIndex], 'fade');
             }
+            updatePlayerChip(data.slotIndex, 'fade');
             break;
     }
 }
@@ -294,10 +295,40 @@ function renderPlayersStrip() {
         const chip = document.createElement('div');
         chip.className = 'player-chip';
         chip.dataset.color = playerSlots[i].color;
+        chip.dataset.slotIndex = i;
         const img = document.createElement('img');
         img.src = cached || imgSrc;
         img.alt = c.name;
         chip.appendChild(img);
         strip.appendChild(chip);
     });
+}
+
+function updatePlayerChip(slotIndex, direction = 'fade') {
+    if (!document.body.classList.contains('mobile-single-slot')) return;
+    if (slotIndex === mySlotIndex) return;
+    const chip = document.querySelector(`.player-chip[data-slot-index="${slotIndex}"]`);
+    if (!chip) { renderPlayersStrip(); return; }
+    const slot = playerSlots[slotIndex];
+    const c = characters[slot.characterIndex];
+    const src = c.genders ? c.genders[slot.gender || 'male'].img : c.img;
+    const cached = (window.characterImageCache?.[src] || {})[slot.color];
+    const oldImg = chip.querySelector('img');
+    const newImg = document.createElement('img');
+    newImg.src = cached || src; newImg.alt = c.name;
+    if (direction === 'fade') newImg.style.opacity = '0';
+    else newImg.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
+    chip.appendChild(newImg);
+    if (oldImg) {
+        if (direction === 'fade') {
+            oldImg.style.transition = 'opacity 500ms ease-in-out';
+            oldImg.style.opacity = '0';
+            newImg.style.transition = 'opacity 500ms ease-in-out';
+            requestAnimationFrame(()=>requestAnimationFrame(()=>newImg.style.opacity='1'));
+        } else {
+            oldImg.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+        }
+        setTimeout(()=>{ oldImg.remove(); newImg.style.opacity=''; newImg.classList.remove('slide-in-from-left','slide-in-from-right'); }, 500);
+    }
+    try { playSound(stoneShiftBuffer); } catch(e) {}
 }

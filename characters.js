@@ -29,6 +29,10 @@ function updateCharacterSlot(slot, character, direction) {
     const genderToggleContainer = slot.querySelector('.gender-toggle-container');
     const genderToggles = slot.querySelectorAll('.gender-toggle');
 
+    // Update character index on the slot itself
+    const newCharacterIndex = characters.indexOf(character);
+    slot.dataset.characterIndex = newCharacterIndex;
+
     // Handle gendered characters
     let characterImgSrc;
     if (character.genders) {
@@ -58,7 +62,11 @@ function updateCharacterSlot(slot, character, direction) {
     newImage.dataset.baseHue = character.baseHue;
     
     // Position new image for entry animation
-    newImage.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
+    if (direction === 'fade') {
+        newImage.style.opacity = '0';
+    } else {
+        newImage.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
+    }
     imageWrapper.appendChild(newImage);
 
     // If we used a fallback, apply shader (should be rare after preloading)
@@ -67,7 +75,15 @@ function updateCharacterSlot(slot, character, direction) {
     }
 
     // Animate old image out
-    oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+    if (direction === 'fade') {
+        oldImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
+        oldImage.style.opacity = '0';
+        newImage.style.transition = `opacity ${ANIMATION_DURATION}ms ease-in-out`;
+        // Delay setting opacity to 1 to allow transition to catch it
+        requestAnimationFrame(() => requestAnimationFrame(() => newImage.style.opacity = '1' ));
+    } else {
+        oldImage.classList.add(direction === 'right' ? 'slide-out-to-left' : 'slide-out-to-right');
+    }
 
     // Play sound
     playSound(stoneShiftBuffer);
@@ -80,6 +96,8 @@ function updateCharacterSlot(slot, character, direction) {
         }
         oldImage.remove();
         newImage.classList.remove('slide-in-from-left', 'slide-in-from-right');
+        newImage.style.opacity = '';
+        newImage.style.transition = '';
         
         // Update the stat text (except name, which is handled separately for timing)
         slot.querySelector('.strength').textContent = `Strength: ${character.stats.strength}`;

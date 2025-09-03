@@ -124,21 +124,47 @@ function handleIncomingConnection(conn) {
     });
 }
 
+function sendToHost(message) {
+    // Client function to send data to the host
+    if (!isHost && connections.length > 0 && connections[0].open) {
+        connections[0].send(message);
+    }
+}
+
 function handleClientMessage(conn, data) {
+    const playerSlot = playerSlots.find(slot => slot.playerId === conn.peer);
+    if (!playerSlot) {
+        console.warn('Received message from unassigned player:', conn.peer);
+        return;
+    }
+    const slotIndex = playerSlots.indexOf(playerSlot);
+
     switch (data.type) {
         case 'character_change':
-            // Handle character selection changes from clients
-            const slot = playerSlots[data.slotIndex];
-            if (slot && slot.playerId === conn.peer) {
-                slot.characterIndex = data.characterIndex;
-                slot.gender = data.gender || 'male';
+            if (slotIndex === data.slotIndex) { // Security check
+                playerSlot.characterIndex = data.characterIndex;
                 
-                // Broadcast to all clients
+                // Broadcast the updated state to all clients
                 broadcastToClients({
                     type: 'player_slots_update',
                     playerSlots: playerSlots
                 });
                 
+                // Also update host's UI
+                updateCharacterSlotsUI();
+            }
+            break;
+        case 'gender_change':
+             if (slotIndex === data.slotIndex) { // Security check
+                playerSlot.gender = data.gender;
+                
+                // Broadcast the updated state to all clients
+                broadcastToClients({
+                    type: 'player_slots_update',
+                    playerSlots: playerSlots
+                });
+                
+                // Also update host's UI
                 updateCharacterSlotsUI();
             }
             break;

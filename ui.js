@@ -27,18 +27,17 @@ function initializeCharacterSelection() {
             
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex - 1 + characters.length) % characters.length;
-            slot.dataset.characterIndex = currentIndex;
+            
             updateCharacterSlot(slot, characters[currentIndex], 'left');
             
-            // Update player slot data and broadcast if host
-            if (isHost || index === 0) {
-                playerSlots[index].characterIndex = currentIndex;
-                if (isHost && connections.length > 0) {
-                    broadcastToClients({
-                        type: 'player_slots_update',
-                        playerSlots: playerSlots
-                    });
+            // Update player slot data and send to host/broadcast
+            playerSlots[index].characterIndex = currentIndex;
+            if (isHost) {
+                if (connections.length > 0) {
+                    broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
                 }
+            } else {
+                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex });
             }
         });
 
@@ -47,18 +46,17 @@ function initializeCharacterSelection() {
             
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex + 1) % characters.length;
-            slot.dataset.characterIndex = currentIndex;
+            
             updateCharacterSlot(slot, characters[currentIndex], 'right');
             
-            // Update player slot data and broadcast if host
-            if (isHost || index === 0) {
-                playerSlots[index].characterIndex = currentIndex;
-                if (isHost && connections.length > 0) {
-                    broadcastToClients({
-                        type: 'player_slots_update',
-                        playerSlots: playerSlots
-                    });
+            // Update player slot data and send to host/broadcast
+            playerSlots[index].characterIndex = currentIndex;
+            if (isHost) {
+                 if (connections.length > 0) {
+                    broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
                 }
+            } else {
+                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex });
             }
         });
 
@@ -78,20 +76,16 @@ function initializeCharacterSelection() {
 
                 // Trigger character update
                 const currentIndex = parseInt(slot.dataset.characterIndex, 10);
-                const currentCharacter = characters[currentIndex];
-                if (currentCharacter.genders) {
-                    updateCharacterSlot(slot, currentCharacter, 'fade');
-                }
+                updateCharacterSlot(slot, characters[currentIndex], 'fade');
                 
-                // Update player slot data and broadcast if host
-                if (isHost || index === 0) {
-                    playerSlots[index].gender = newGender;
-                    if (isHost && connections.length > 0) {
-                        broadcastToClients({
-                            type: 'player_slots_update',
-                            playerSlots: playerSlots
-                        });
+                // Update player slot data and send to host/broadcast
+                playerSlots[index].gender = newGender;
+                 if (isHost) {
+                    if (connections.length > 0) {
+                        broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
                     }
+                } else {
+                    sendToHost({ type: 'gender_change', slotIndex: index, gender: newGender });
                 }
             });
         });
@@ -99,13 +93,15 @@ function initializeCharacterSelection() {
 }
 
 function canControlSlot(slotIndex) {
-    // Host can control all slots, clients can only control their assigned slot
-    if (isHost) return true;
-    if (slotIndex === 0) return true; // Always allow player 1 (could be client or host)
-    
-    // For clients, check if this is their assigned slot
-    const slot = playerSlots[slotIndex];
-    return slot.occupied && slot.playerId === peerId;
+    // Host can only control their slot (index 0).
+    // Clients can only control their assigned slot.
+    const slotData = playerSlots[slotIndex];
+
+    if (isHost) {
+        return slotIndex === 0;
+    } else {
+        return slotData.occupied && slotData.playerId === peerId;
+    }
 }
 
 // Set up the start overlay

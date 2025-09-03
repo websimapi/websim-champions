@@ -323,4 +323,4 @@
     opacity: 0.3;
 }
 
-.skull-overlay img, .skull-overlay canvas { width: 70%; height: 70%; object-fit: contain; }
+.skull-overlay img { width: 70%; height: 70%; object-fit: contain; }

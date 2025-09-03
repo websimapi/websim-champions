@@ -62,6 +62,17 @@
     pointer-events: none;
 }
 
+#start-overlay.on-tv {
+    position: absolute; /* Allow it to be a texture */
+    width: 1920px;
+    height: 1080px;
+    top: -9999px; /* Move offscreen */
+    left: -9999px;
+    opacity: 1;
+    pointer-events: auto; /* Allow interaction for texture */
+    z-index: -1;
+}
+
 .start-content {
     text-align: center;
     color: white;

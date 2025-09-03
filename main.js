@@ -9,6 +9,8 @@
 // removed initializeRelicCursor() function - now in cursor.js
 // removed preprocessCharacters() function - now in characters.js
 
+import { initScene, startTransition } from './scene.js';
+
 let preprocessPromise = null;
 let peer = null;
 let peerId = null;
@@ -34,6 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // The user gesture will resume it later.
     initializeAudio();
 
+    // The 3D scene will handle the transition to the main menu
+    initScene();
+
     // Preload all character images before doing anything else
     await preloadAllCharacterImages();
 
@@ -48,6 +53,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeCharacterSelection();
     initializeStartOverlay();
 });
+
+// This function will be called from scene.js when the cartridge is inserted
+window.startGame = function() {
+    console.log("Starting game transition...");
+    resumeAudioContext();
+
+    const startOverlay = document.getElementById('start-overlay');
+    startOverlay.classList.add('on-tv');
+    startOverlay.classList.remove('hidden');
+
+    startTransition(() => {
+        // This callback runs after the zoom animation finishes
+        console.log("3D transition finished. Showing main menu.");
+        const threeContainer = document.getElementById('three-container');
+        threeContainer.style.display = 'none';
+
+        startOverlay.classList.remove('on-tv');
+        // The overlay is already not hidden, so it will just take over the screen.
+    });
+};
 
 function initializePeerJS() {
     peer = new Peer();

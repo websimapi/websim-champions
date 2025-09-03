@@ -170,7 +170,19 @@ async function startCameraScanner() {
                 
                 if (code && code.data) {
                     console.log('QR Code detected:', code.data);
-                    joinGame(code.data);
+                    let hostId = code.data;
+                    // Check if the QR code is a URL and extract the ID parameter
+                    try {
+                        const url = new URL(code.data);
+                        if (url.searchParams.has('ID')) {
+                            hostId = url.searchParams.get('ID');
+                            console.log('Extracted Host ID from URL:', hostId);
+                        }
+                    } catch (e) {
+                        // Not a valid URL, assume it's the host ID directly.
+                        console.log('QR code is not a URL, using raw data.');
+                    }
+                    joinGame(hostId);
                     stopCameraScanner(stream);
                     return;
                 }

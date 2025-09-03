@@ -64,10 +64,11 @@ function initializePeerJS() {
 }
 
 function generateHostQRCodes(id) {
+    const joinUrl = `https://champions.on.websim.com?ID=${id}`;
     // Generate mini QR code for in-game display
     new QRious({
         element: document.getElementById('mini-qr-code'),
-        value: id,
+        value: joinUrl,
         size: 80,
         foreground: '#ffffff',
         background: 'transparent'
@@ -76,7 +77,7 @@ function generateHostQRCodes(id) {
     // Generate fullscreen QR code
     new QRious({
         element: document.getElementById('fullscreen-qr-code'),
-        value: id,
+        value: joinUrl,
         size: Math.min(window.innerWidth, window.innerHeight) * 0.6,
         foreground: '#ffffff',
         background: 'transparent',

@@ -186,6 +186,19 @@
     <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "websim": "/websim.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import {WebsimSocket} from 'websim';
+      window.WebsimSocket = WebsimSocket;
+    </script>
+    
     <script src="audio.js"></script>
     <script src="characters.js"></script>
     <script src="color-utils.js"></script>

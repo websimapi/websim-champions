@@ -89,20 +89,18 @@ function initBackgroundShader() {
             return value;
         }
 
-        // Color palette function
+        // Color palette function - darker, more ancient feel
         vec3 palette(float t) {
-            vec3 dark   = vec3(0.1, 0.0, 0.15);
-            vec3 red    = vec3(1.0, 0.1, 0.1);
-            vec3 orange = vec3(1.0, 0.6, 0.0);
-            vec3 yellow = vec3(1.0, 0.9, 0.1);
-            vec3 green  = vec3(0.1, 0.7, 0.2);
-            vec3 blue   = vec3(0.1, 0.2, 0.8);
+            vec3 dark   = vec3(0.05, 0.02, 0.1);    // Deep, dark purple/blue
+            vec3 blue   = vec3(0.1, 0.2, 0.4);      // Muted dark blue
+            vec3 teal   = vec3(0.1, 0.35, 0.3);     // Murky teal/green
+            vec3 ochre  = vec3(0.6, 0.4, 0.1);      // Faded gold/ochre
+            vec3 ember  = vec3(0.8, 0.2, 0.1);      // Dull ember red
 
-            vec3 color = mix(dark, red, smoothstep(0.0, 0.2, t));
-            color = mix(color, orange, smoothstep(0.2, 0.4, t));
-            color = mix(color, yellow, smoothstep(0.4, 0.6, t));
-            color = mix(color, green, smoothstep(0.6, 0.8, t));
-            color = mix(color, blue, smoothstep(0.8, 1.0, t));
+            vec3 color = mix(dark, blue, smoothstep(0.0, 0.25, t));
+            color = mix(color, teal, smoothstep(0.25, 0.5, t));
+            color = mix(color, ochre, smoothstep(0.5, 0.75, t));
+            color = mix(color, ember, smoothstep(0.75, 1.0, t));
             
             return color;
         }
@@ -111,8 +109,8 @@ function initBackgroundShader() {
             vec2 st = gl_FragCoord.xy / u_resolution.xy;
             st.x *= u_resolution.x / u_resolution.y; // aspect ratio correction
             
-            float speed = 0.2; // increased speed
-            float zoom = 1.8;  // zoom into the noise
+            float speed = 0.15; // slightly slower
+            float zoom = 1.2;  // spread out the noise more
             
             vec3 p = vec3(st * zoom, u_time * speed);
             
@@ -123,15 +121,21 @@ function initBackgroundShader() {
             // Combine the noise layers
             float combined_noise = noise1 * 0.5 + noise2 * 0.5;
             
-            // Warp the texture coordinates with sine waves for a fluid, lava-lamp motion
-            vec2 warp = vec2(sin(u_time * 0.15 + st.y * 2.0), cos(u_time * 0.1 + st.x * 2.0)) * 0.2;
+            // Warp the texture coordinates for a more fluid motion
+            vec2 warp = vec2(sin(u_time * 0.15 + st.y * 2.0), cos(u_time * 0.1 + st.x * 2.0)) * 0.1; // reduced warp
             float final_noise = fbm(vec3((st + warp) * zoom, u_time * speed * 0.8));
             
             // Combine warped noise with the parallax noise
             float n = (combined_noise + final_noise) * 0.5;
             n = (n + 1.0) / 2.0; // Remap from [-1, 1] to [0, 1]
+
+            // Increase contrast to create more dark areas and make the fog "wisps" more defined
+            n = pow(n, 2.0);
             
             vec3 color = palette(n);
+
+            // Darken the overall effect to make it more subtle
+            color *= 0.7;
 
             gl_FragColor = vec4(color, 1.0);
         }

@@ -91,14 +91,18 @@ function initBackgroundShader() {
 
         // Color palette function
         vec3 palette(float t) {
-            vec3 red   = vec3(0.8, 0.1, 0.1);
-            vec3 orange = vec3(1.0, 0.5, 0.0);
-            vec3 blue  = vec3(0.0, 0.2, 0.8);
-            vec3 dark = vec3(0.1, 0.0, 0.2);
+            vec3 dark   = vec3(0.1, 0.0, 0.15);
+            vec3 red    = vec3(1.0, 0.1, 0.1);
+            vec3 orange = vec3(1.0, 0.6, 0.0);
+            vec3 yellow = vec3(1.0, 0.9, 0.1);
+            vec3 green  = vec3(0.1, 0.7, 0.2);
+            vec3 blue   = vec3(0.1, 0.2, 0.8);
 
-            vec3 color = mix(dark, red, smoothstep(0.0, 0.3, t));
-            color = mix(color, orange, smoothstep(0.3, 0.6, t));
-            color = mix(color, blue, smoothstep(0.6, 1.0, t));
+            vec3 color = mix(dark, red, smoothstep(0.0, 0.2, t));
+            color = mix(color, orange, smoothstep(0.2, 0.4, t));
+            color = mix(color, yellow, smoothstep(0.4, 0.6, t));
+            color = mix(color, green, smoothstep(0.6, 0.8, t));
+            color = mix(color, blue, smoothstep(0.8, 1.0, t));
             
             return color;
         }

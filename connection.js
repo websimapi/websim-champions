@@ -65,6 +65,9 @@ function initializeStartOverlay() {
     const copyIdBtn = document.getElementById('copy-id-btn');
     const peerIdSpan = document.getElementById('peer-id-display');
 
+    // Add a one-time listener to the overlay to resume audio on the first click
+    startOverlay.addEventListener('click', resumeAudioContext, { once: true });
+
     closeQrBtn.addEventListener('click', () => {
         qrOverlay.classList.add('hidden');
     });

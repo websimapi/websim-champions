@@ -18,6 +18,12 @@
     font-family: 'Cinzel', serif;
 }
 
+#preloader.finished {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease-out 1.5s; /* Delay hiding preloader to let intro scene fade in */
+}
+
 #preloader.hidden {
     opacity: 0;
     pointer-events: none;
@@ -57,20 +63,14 @@
     transition: opacity 0.5s ease-out;
 }
 
+#start-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 #start-overlay.hidden {
     opacity: 0;
     pointer-events: none;
-}
-
-#start-overlay.on-tv {
-    position: absolute; /* Allow it to be a texture */
-    width: 1920px;
-    height: 1080px;
-    top: -9999px; /* Move offscreen */
-    left: -9999px;
-    opacity: 1;
-    pointer-events: auto; /* Allow interaction for texture */
-    z-index: -1;
 }
 
 .start-content {

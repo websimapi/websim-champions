@@ -29,9 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeMobile(); // Changed from forceLandscape()
     initializeRelicCursor();
     
-    // Attempt to initialize audio early.
-    // This may start music on some browsers, or at least prepare the AudioContext.
-    await initializeAudio();
+    // Attempt to initialize audio early, but DON'T await it.
+    // This lets the app load while audio is prepared in the background.
+    // The user gesture will resume it later.
+    initializeAudio();
 
     // Preload all character images before doing anything else
     await preloadAllCharacterImages();

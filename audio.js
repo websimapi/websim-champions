@@ -82,22 +82,29 @@ async function initializeAudio() {
             }
         };
 
-        // Try to resume immediately. This works if the page has been interacted with before.
-        if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
-
+        // Don't try to resume here, as there's no user gesture yet.
+        // We will resume on the first user click.
+        
         // Load all sounds
         const soundsToLoad = [
             loadSound('stone_shift.mp3').then(b => stoneShiftBuffer = b),
             loadSound('/Ancient_Champions.ogg').then(b => backgroundMusicBuffer = b)
         ];
-        await Promise.all(soundsToLoad);
-        
-        // Attempt to play background music right away
-        playBackgroundMusic();
+        // We don't await here to prevent blocking the UI loading.
+        Promise.all(soundsToLoad).then(() => {
+            // Attempt to play background music right away in case context is already running
+            playBackgroundMusic();
+        });
 
     } catch (e) {
         console.error("Web Audio API is not supported or failed to initialize.", e);
+    }
+}
+
+function resumeAudioContext() {
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('AudioContext resumed successfully on user gesture.');
+        });
     }
 }

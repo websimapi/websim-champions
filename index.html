@@ -16,12 +16,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="intro-container"></div>
     <div id="preloader">
         <div class="preloader-content">
             <div class="preloader-spinner"></div>
             <p>Loading Heroes...</p>
         </div>
+    </div>
+
+    <div id="host-qr-display" class="host-qr-mini">
+        <canvas id="mini-qr-code"></canvas>
     </div>
 
     <div class="character-selection">
@@ -150,10 +153,6 @@
         </div>
     </div>
 
-    <div id="host-qr-display" class="host-qr-mini">
-        <canvas id="mini-qr-code"></canvas>
-    </div>
-
     <div id="qr-code-overlay" class="qr-overlay hidden">
         <div class="qr-content">
             <h3>Scan this code to join the game</h3>
@@ -182,14 +181,6 @@
         <button class="slot-pill" data-slot="3" data-color="red" aria-label="Red"></button>
     </div>
 
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-    </script>
     <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -203,7 +194,6 @@
     <script src="connection.js"></script>
     <script src="ui.js"></script>
     <script src="cursor.js"></script>
-    <script type="module" src="intro-scene.js"></script>
     <script src="main.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>

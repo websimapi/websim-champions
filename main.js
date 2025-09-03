@@ -29,16 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeMobile(); // Changed from forceLandscape()
     initializeRelicCursor();
     
-    // Attempt to initialize audio early, but DON'T await it.
-    // This lets the app load while audio is prepared in the background.
-    // The user gesture will resume it later.
-    initializeAudio();
-
     // Preload all character images before doing anything else
     await preloadAllCharacterImages();
 
-    // The intro scene will be made visible by intro-scene.js
-    // It will be responsible for hiding the preloader and showing the start overlay.
+    // Hide preloader
+    const preloader = document.getElementById('preloader');
+    preloader.classList.add('hidden');
 
     // Initialize networking
     initializePeerJS();

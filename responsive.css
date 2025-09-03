@@ -2,6 +2,7 @@
 @media (max-width: 900px) {
     .character-selection {
         padding: 10px 0;
+        padding-top: 10px; /* Reset padding for mobile */
     }
 
     body.mobile.mobile-single-slot .character-selection {
@@ -24,6 +25,8 @@
         font-size: 2.5rem;
         margin-bottom: 1rem;
         margin-top: 0.5rem;
+        position: static; /* Reset positioning */
+        transform: none; /* Reset positioning */
     }
     
     .instructions {
@@ -166,7 +169,6 @@
         font-size: 1.8rem;
     }
 }
-
 
 @media (max-width: 768px) {
   body.mobile.mobile-single-slot .players-strip { display: flex; }

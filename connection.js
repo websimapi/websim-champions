@@ -65,9 +65,6 @@ function initializeStartOverlay() {
     const copyIdBtn = document.getElementById('copy-id-btn');
     const peerIdSpan = document.getElementById('peer-id-display');
 
-    // Add a one-time listener to the overlay to resume audio on the first click
-    startOverlay.addEventListener('click', resumeAudioContext, { once: true });
-
     closeQrBtn.addEventListener('click', () => {
         qrOverlay.classList.add('hidden');
     });
@@ -109,11 +106,8 @@ function startHosting() {
     // Show mini QR code in top right
     document.getElementById('host-qr-display').classList.add('visible');
     
-    // Audio is now initialized on page load.
-    // We just need to ensure the context is resumed if it was suspended.
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume();
-    }
+    // Initialize audio
+    initializeAudio();
     
     console.log('Started Scan to Play mode as host with ID:', peerId);
     mySlotIndex = 0;
@@ -194,11 +188,8 @@ function joinGame(hostId) {
         // Hide start overlay
         document.getElementById('start-overlay').classList.add('hidden');
         
-        // Audio is now initialized on page load.
-        // We just need to ensure the context is resumed if it was suspended.
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
+        // Initialize audio
+        initializeAudio();
     });
     
     conn.on('data', (data) => {

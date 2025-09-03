@@ -2,7 +2,6 @@
 let audioContext;
 let stoneShiftBuffer;
 let backgroundMusicBuffer;
-let musicSourceNode = null; // To keep track of the music source
 let isMusicPlaying = false;
 let stoneShiftLoading = false;
 
@@ -30,11 +29,14 @@ function playSound(buffer) {
         }
         return;
     }
-    
-    // It's very likely the context is running if sound effects are played,
-    // but a resume check is cheap.
+
+    // Resume AudioContext if it's in a suspended state (required by browser autoplay policies)
     if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        audioContext.resume().then(() => {
+            if (!isMusicPlaying) {
+                playBackgroundMusic();
+            }
+        });
     }
 
     const source = audioContext.createBufferSource();
@@ -47,64 +49,52 @@ function playBackgroundMusic() {
     if (!audioContext || !backgroundMusicBuffer || isMusicPlaying) return;
 
     if (audioContext.state !== 'running') {
-        console.log('AudioContext not running, music delayed.');
+        // Wait for user interaction to start music
         return;
     }
 
     isMusicPlaying = true;
     
-    musicSourceNode = audioContext.createBufferSource();
-    musicSourceNode.buffer = backgroundMusicBuffer;
-    musicSourceNode.loop = true; // Loop the music
+    const source = audioContext.createBufferSource();
+    source.buffer = backgroundMusicBuffer;
 
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0.5; // Set volume to half
 
-    musicSourceNode.connect(gainNode);
+    source.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    musicSourceNode.start(0);
+    source.start(0);
 
-    console.log('Background music started.');
+    source.onended = () => {
+        isMusicPlaying = false;
+        setTimeout(playBackgroundMusic, 5000); // Wait 5 seconds before repeating
+    };
 }
 
-// Initialize audio system
+// Initialize audio system with user interaction
 async function initializeAudio() {
-    if (audioContext) return; // Already initialized
-
     try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Listen for state changes to automatically play music when ready
-        audioContext.onstatechange = () => {
-            console.log(`AudioContext state changed to: ${audioContext.state}`);
-            if (audioContext.state === 'running') {
-                playBackgroundMusic();
-            }
-        };
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
 
-        // Don't try to resume here, as there's no user gesture yet.
-        // We will resume on the first user click.
+        // Resume context if it was suspended
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        // Preload sounds now that we have user interaction
+        if (!stoneShiftBuffer) {
+             stoneShiftBuffer = await loadSound('stone_shift.mp3');
+        }
+        if (!backgroundMusicBuffer) {
+            backgroundMusicBuffer = await loadSound('/Ancient_Champions.ogg');
+        }
         
-        // Load all sounds
-        const soundsToLoad = [
-            loadSound('stone_shift.mp3').then(b => stoneShiftBuffer = b),
-            loadSound('/Ancient_Champions.ogg').then(b => backgroundMusicBuffer = b)
-        ];
-        // We don't await here to prevent blocking the UI loading.
-        Promise.all(soundsToLoad).then(() => {
-            // Attempt to play background music right away in case context is already running
-            playBackgroundMusic();
-        });
+        // Start background music
+        playBackgroundMusic();
 
     } catch (e) {
         console.error("Web Audio API is not supported or failed to initialize.", e);
-    }
-}
-
-function resumeAudioContext() {
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            console.log('AudioContext resumed successfully on user gesture.');
-        });
     }
 }

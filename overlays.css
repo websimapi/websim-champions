@@ -4,24 +4,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
-        radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.85) 100%), 
-        url('/main-menu-background.png');
-    background-size: cover;
-    background-position: center;
-    background-color: #1a1a2e; /* Fallback color */
+    background: #1a1a2e;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 200;
     transition: opacity 0.5s ease-out;
     font-family: 'Cinzel', serif;
-}
-
-#preloader.finished {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 1s ease-out 1.5s; /* Delay hiding preloader to let intro scene fade in */
 }
 
 #preloader.hidden {
@@ -61,11 +50,6 @@
     z-index: 100;
     cursor: var(--relic-cursor);
     transition: opacity 0.5s ease-out;
-}
-
-#start-overlay.visible {
-    opacity: 1;
-    pointer-events: auto;
 }
 
 #start-overlay.hidden {
@@ -163,7 +147,7 @@
 }
 
 .host-qr-mini {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
     background: rgba(0, 0, 0, 0.8);

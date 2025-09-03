@@ -114,6 +114,15 @@
     max-width: 250px;
 }
 
+.mode-btn.join-btn {
+    border-color: #ffd700;
+    color: #ffd700;
+}
+
+.mode-btn.join-btn:hover:not(.disabled) {
+    background: rgba(255, 215, 0, 0.2);
+}
+
 .mode-btn.host-btn {
     border-color: #4ade80;
     color: #4ade80;
@@ -126,15 +135,6 @@
 .mode-btn:hover:not(.disabled) {
     background: rgba(255, 215, 0, 0.2);
     transform: translateY(-2px);
-}
-
-.mode-btn.join-link-btn {
-    border-color: #4a9eff;
-    color: #4a9eff;
-}
-
-.mode-btn.join-link-btn:hover:not(.disabled) {
-    background: rgba(74, 158, 255, 0.2);
 }
 
 .mode-btn.disabled {

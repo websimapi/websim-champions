@@ -7,89 +7,77 @@ function initializeStartOverlay() {
     const scanBtn = document.getElementById('scan-qr-btn');
     const joinInput = document.getElementById('join-id-input');
     const realtimeBtn = document.getElementById('realtime-mode-btn');
+    const joinBtn = document.getElementById('join-btn');
     const joinControlGroup = document.querySelector('.join-control-group');
-    const joinByLinkBtn = document.getElementById('join-by-link-btn');
-    const modeDescription = document.querySelector('.mode-description');
-    
+
+    // Check for join ID in URL
     const urlParams = new URLSearchParams(window.location.search);
     const hostIdFromUrl = urlParams.get('ID');
-
     if (hostIdFromUrl) {
-        // We are joining via a link, so simplify the UI
+        joinInput.value = hostIdFromUrl;
         hostBtn.style.display = 'none';
-        joinControlGroup.style.display = 'none';
         realtimeBtn.style.display = 'none';
-        modeDescription.style.display = 'none';
-        joinByLinkBtn.style.display = 'block';
-
-        const joinAction = () => {
+        document.querySelector('.mode-description').style.display = 'none';
+        joinControlGroup.style.display = 'none';
+        joinBtn.style.display = 'block';
+        
+        joinBtn.addEventListener('click', () => {
             if (peerId) {
                 joinGame(hostIdFromUrl);
             } else {
-                console.log('PeerJS not ready yet, waiting...');
-                // If PeerJS isn't ready, we wait for the 'open' event.
-                // We'll attach a one-time listener to peer.
-                peer.once('open', () => {
-                     console.log('PeerJS ready now, joining game.');
-                     joinGame(hostIdFromUrl);
-                });
+                alert('Connection service is not ready, please wait a moment.');
             }
-        };
-        joinByLinkBtn.addEventListener('click', joinAction);
-        
-        // Auto-join after a short delay to allow PeerJS to initialize
-        setTimeout(joinAction, 500);
+        });
 
-        return; // Don't set up the other listeners
+    } else {
+         hostBtn.addEventListener('click', () => {
+            if (peerId) {
+                startHosting();
+            } else {
+                console.log('PeerJS not ready yet');
+                alert('Connection service is not ready, please wait a moment.');
+            }
+        });
+
+        scanBtn.addEventListener('click', () => {
+            if (peerId) {
+                startCameraScanner();
+            } else {
+                console.log('PeerJS not ready yet');
+                alert('Connection service is not ready, please wait a moment.');
+            }
+        });
+
+        joinInput.addEventListener('click', async () => {
+            if (peerId && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
+                try {
+                    // This may trigger a browser permission prompt
+                    const clipboardText = await navigator.clipboard.readText();
+                    const trimmedText = clipboardText.trim();
+                    // Basic check for a plausible ID (not empty)
+                    if (trimmedText.length > 3) {
+                        joinInput.value = trimmedText;
+                        joinGame(trimmedText);
+                    }
+                } catch (err) {
+                    console.warn('Could not read from clipboard or permission denied:', err.name);
+                    // Fail silently, user can still type manually.
+                }
+            }
+        });
+
+        joinInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const hostId = joinInput.value.trim();
+                if (hostId) {
+                    joinGame(hostId);
+                } else {
+                    alert('Please enter a valid join code.');
+                }
+            }
+        });
     }
     
-    hostBtn.addEventListener('click', () => {
-        if (peerId) {
-            startHosting();
-        } else {
-            console.log('PeerJS not ready yet');
-            alert('Connection service is not ready, please wait a moment.');
-        }
-    });
-
-    scanBtn.addEventListener('click', () => {
-        if (peerId) {
-            startCameraScanner();
-        } else {
-            console.log('PeerJS not ready yet');
-            alert('Connection service is not ready, please wait a moment.');
-        }
-    });
-
-    joinInput.addEventListener('click', async () => {
-        if (peerId && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
-            try {
-                // This may trigger a browser permission prompt
-                const clipboardText = await navigator.clipboard.readText();
-                const trimmedText = clipboardText.trim();
-                // Basic check for a plausible ID (not empty)
-                if (trimmedText.length > 3) {
-                    joinInput.value = trimmedText;
-                    joinGame(trimmedText);
-                }
-            } catch (err) {
-                console.warn('Could not read from clipboard or permission denied:', err.name);
-                // Fail silently, user can still type manually.
-            }
-        }
-    });
-
-    joinInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const hostId = joinInput.value.trim();
-            if (hostId) {
-                joinGame(hostId);
-            } else {
-                alert('Please enter a valid join code.');
-            }
-        }
-    });
-
     realtimeBtn.addEventListener('click', () => {
         // Disabled for now
         console.log('Realtime mode not implemented yet');
@@ -289,6 +277,17 @@ function initializePeerJS() {
         peerId = id;
         console.log('PeerJS initialized with ID:', id);
         generateHostQRCodes(id);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostIdFromUrl = urlParams.get('ID');
+        if (hostIdFromUrl) {
+            // If we have an ID in the URL, we're a client, so try to join.
+            // A small delay might be needed for the UI to be ready.
+            setTimeout(() => {
+                const joinBtn = document.getElementById('join-btn');
+                if (joinBtn) joinBtn.click();
+            }, 100);
+        }
     });
 
     peer.on('connection', (conn) => {
@@ -303,7 +302,7 @@ function initializePeerJS() {
 
 function generateHostQRCodes(id) {
     const joinUrl = `https://champions.on.websim.com?ID=${id}`;
-
+    
     // Generate mini QR code for in-game display
     new QRious({
         element: document.getElementById('mini-qr-code'),

@@ -24,7 +24,12 @@
     </div>
 
     <div class="character-selection">
-        <h1 class="title">Choose Your Hero</h1>
+        <header class="main-header">
+            <h1 class="title">Choose Your Hero</h1>
+            <div id="host-qr-display" class="host-qr-mini">
+                <canvas id="mini-qr-code"></canvas>
+            </div>
+        </header>
         <div id="players-strip" class="players-strip"></div>
         <div class="characters-grid-container">
             <div class="characters-grid">
@@ -80,7 +85,7 @@
                     <div class="character-frame">
                         <div class="select-character-text">Select A Character</div>
                         <div class="character-image-wrapper">
-                             <img src="/character3.png" alt="Wizard" class="character-image" data-base-hue="60">
+                             <img src="/character_wizard.png" alt="Wizard" class="character-image" data-base-hue="60">
                         </div>
                         <div class="character-stats">
                              <div class="gender-toggle-container" style="visibility: hidden;">
@@ -104,7 +109,7 @@
                     <div class="character-frame">
                         <div class="select-character-text">Select A Character</div>
                         <div class="character-image-wrapper">
-                            <img src="/character4.png" alt="Valkyrie" class="character-image" data-base-hue="0">
+                            <img src="/character_valkrie.png" alt="Valkyrie" class="character-image" data-base-hue="0">
                         </div>
                         <div class="character-stats">
                              <div class="gender-toggle-container" style="visibility: hidden;">
@@ -133,6 +138,7 @@
             <h2 class="start-title">Ancient Champions</h2>
             <div class="game-mode-selection">
                 <button id="host-btn" class="mode-btn host-btn">Play</button>
+                <button id="join-btn" class="mode-btn join-btn" style="display: none;">Join Game</button>
                 <div class="join-control-group">
                     <input type="text" id="join-id-input" class="mode-input" placeholder="Join by Code">
                     <button id="scan-qr-btn" class="scan-icon-btn" aria-label="Scan QR Code to Join">
@@ -147,10 +153,6 @@
                 <p class="mode-description">Coming Soon</p>
             </div>
         </div>
-    </div>
-
-    <div id="host-qr-display" class="host-qr-mini">
-        <canvas id="mini-qr-code"></canvas>
     </div>
 
     <div id="qr-code-overlay" class="qr-overlay hidden">
@@ -184,14 +186,31 @@
     <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "websim": "/websim.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import {WebsimSocket} from 'websim';
+      window.WebsimSocket = WebsimSocket;
+    </script>
+    
+    <script src="game-state.js"></script>
     <script src="audio.js"></script>
     <script src="characters.js"></script>
     <script src="color-utils.js"></script>
     <script src="recolor-filters.js"></script>
+    <script src="grayscale-quantize.js"></script>
+    <script src="palette-recolor.js"></script>
     <script src="color-shader.js"></script>
     <script src="mobile.js"></script>
     <script src="mobile-ui.js"></script>
-    <script src="connection.js"></script>
+    <script src="qr-scanner.js"></script>
+    <script src="peer-manager.js"></script>
     <script src="ui.js"></script>
     <script src="cursor.js"></script>
     <script src="main.js"></script>

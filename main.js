@@ -138,6 +138,7 @@ function handleClientMessage(conn, data) {
         return;
     }
     const slotIndex = playerSlots.indexOf(playerSlot);
+    const oldCharacterIndex = playerSlot.characterIndex;
 
     switch (data.type) {
         case 'character_change':
@@ -146,12 +147,17 @@ function handleClientMessage(conn, data) {
                 
                 // Broadcast the updated state to all clients
                 broadcastToClients({
-                    type: 'player_slots_update',
-                    playerSlots: playerSlots
+                    type: 'character_change',
+                    slotIndex: slotIndex,
+                    characterIndex: data.characterIndex,
+                    direction: data.direction
                 });
                 
-                // Also update host's UI
-                updateCharacterSlotsUI();
+                // Also update host's UI with animation
+                const slotElement = document.querySelector(`.character-slot[data-player="${slotIndex + 1}"]`);
+                if (slotElement) {
+                    updateCharacterSlot(slotElement, characters[data.characterIndex], data.direction);
+                }
             }
             break;
         case 'gender_change':
@@ -160,12 +166,19 @@ function handleClientMessage(conn, data) {
                 
                 // Broadcast the updated state to all clients
                 broadcastToClients({
-                    type: 'player_slots_update',
-                    playerSlots: playerSlots
+                    type: 'gender_change',
+                    slotIndex: slotIndex,
+                    gender: data.gender
                 });
                 
-                // Also update host's UI
-                updateCharacterSlotsUI();
+                // Also update host's UI with animation
+                const slotElement = document.querySelector(`.character-slot[data-player="${slotIndex + 1}"]`);
+                if (slotElement) {
+                     // The gender property is already updated in playerSlots array.
+                     // updateCharacterSlot will read from the dataset which we update before calling.
+                     slotElement.dataset.archerGender = data.gender;
+                     updateCharacterSlot(slotElement, characters[playerSlot.characterIndex], 'fade');
+                }
             }
             break;
     }
@@ -200,15 +213,38 @@ function updateCharacterSlotsUI() {
     const slots = document.querySelectorAll('.character-slot');
     slots.forEach((slot, index) => {
         const playerSlot = playerSlots[index];
-        
+        const currentCharacterIndex = parseInt(slot.dataset.characterIndex, 10);
+        const currentGender = slot.dataset.archerGender;
+
         if (playerSlot.occupied) {
             slot.classList.remove('empty');
-            // Update character display based on playerSlot data
+            
+            let characterChanged = playerSlot.characterIndex !== currentCharacterIndex;
+            let genderChanged = false;
+            if (characters[playerSlot.characterIndex].genders) {
+                genderChanged = playerSlot.gender !== currentGender;
+            }
+
+            // Only update if there's a change
+            if (characterChanged || genderChanged) {
+                 // The 'fade' direction is a sensible default for general state updates.
+                 // More specific animation directions are handled by 'character_change' and 'gender_change' events.
+                updateCharacterSlot(slot, characters[playerSlot.characterIndex], 'fade');
+            }
+            
+            // Always ensure data attributes are in sync, even if no visual update is needed right now.
             slot.dataset.characterIndex = playerSlot.characterIndex;
             if (characters[playerSlot.characterIndex].genders) {
                 slot.dataset.archerGender = playerSlot.gender;
+                const genderContainer = slot.querySelector('.gender-toggle-container');
+                genderContainer.style.visibility = 'visible';
+                genderContainer.querySelectorAll('.gender-toggle').forEach(t => {
+                    t.classList.toggle('active', t.dataset.gender === playerSlot.gender);
+                });
+            } else {
+                 slot.querySelector('.gender-toggle-container').style.visibility = 'hidden';
             }
-            updateCharacterSlot(slot, characters[playerSlot.characterIndex], 'fade');
+
         } else {
             slot.classList.add('empty');
         }

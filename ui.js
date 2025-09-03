@@ -33,11 +33,9 @@ function initializeCharacterSelection() {
             // Update player slot data and send to host/broadcast
             playerSlots[index].characterIndex = currentIndex;
             if (isHost) {
-                if (connections.length > 0) {
-                    broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
-                }
+                broadcastToClients({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'left' });
             } else {
-                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex });
+                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'left' });
             }
         });
 
@@ -52,11 +50,9 @@ function initializeCharacterSelection() {
             // Update player slot data and send to host/broadcast
             playerSlots[index].characterIndex = currentIndex;
             if (isHost) {
-                 if (connections.length > 0) {
-                    broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
-                }
+                broadcastToClients({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'right' });
             } else {
-                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex });
+                sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'right' });
             }
         });
 
@@ -81,9 +77,7 @@ function initializeCharacterSelection() {
                 // Update player slot data and send to host/broadcast
                 playerSlots[index].gender = newGender;
                  if (isHost) {
-                    if (connections.length > 0) {
-                        broadcastToClients({ type: 'player_slots_update', playerSlots: playerSlots });
-                    }
+                    broadcastToClients({ type: 'gender_change', slotIndex: index, gender: newGender });
                 } else {
                     sendToHost({ type: 'gender_change', slotIndex: index, gender: newGender });
                 }
@@ -246,17 +240,37 @@ function joinGame(hostId) {
 }
 
 function handleHostMessage(data) {
+    const slotElement = document.querySelector(`.character-slot[data-player="${data.slotIndex + 1}"]`);
+
     switch (data.type) {
         case 'slot_assignment':
             console.log('Assigned to slot:', data.slot);
-            // Update UI based on current game state
+            playerSlots = data.playerSlots;
+            updateCharacterSlotsUI(); // Full sync on first join
+            break;
+            
+        case 'player_slots_update':
+            // Used for players joining/leaving
             playerSlots = data.playerSlots;
             updateCharacterSlotsUI();
             break;
             
-        case 'player_slots_update':
-            playerSlots = data.playerSlots;
-            updateCharacterSlotsUI();
+        case 'character_change':
+            if (slotElement) {
+                playerSlots[data.slotIndex].characterIndex = data.characterIndex;
+                updateCharacterSlot(slotElement, characters[data.characterIndex], data.direction);
+            }
+            break;
+            
+        case 'gender_change':
+            if (slotElement) {
+                playerSlots[data.slotIndex].gender = data.gender;
+                slotElement.dataset.archerGender = data.gender;
+                slotElement.querySelectorAll('.gender-toggle').forEach(t => {
+                    t.classList.toggle('active', t.dataset.gender === data.gender);
+                });
+                updateCharacterSlot(slotElement, characters[playerSlots[data.slotIndex].characterIndex], 'fade');
+            }
             break;
     }
 }

@@ -128,6 +128,15 @@
     transform: translateY(-2px);
 }
 
+.mode-btn.join-link-btn {
+    border-color: #4a9eff;
+    color: #4a9eff;
+}
+
+.mode-btn.join-link-btn:hover:not(.disabled) {
+    background: rgba(74, 158, 255, 0.2);
+}
+
 .mode-btn.disabled {
     border-color: #666;
     color: #666;

@@ -7,6 +7,41 @@ function initializeStartOverlay() {
     const scanBtn = document.getElementById('scan-qr-btn');
     const joinInput = document.getElementById('join-id-input');
     const realtimeBtn = document.getElementById('realtime-mode-btn');
+    const joinControlGroup = document.querySelector('.join-control-group');
+    const joinByLinkBtn = document.getElementById('join-by-link-btn');
+    const modeDescription = document.querySelector('.mode-description');
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const hostIdFromUrl = urlParams.get('ID');
+
+    if (hostIdFromUrl) {
+        // We are joining via a link, so simplify the UI
+        hostBtn.style.display = 'none';
+        joinControlGroup.style.display = 'none';
+        realtimeBtn.style.display = 'none';
+        modeDescription.style.display = 'none';
+        joinByLinkBtn.style.display = 'block';
+
+        const joinAction = () => {
+            if (peerId) {
+                joinGame(hostIdFromUrl);
+            } else {
+                console.log('PeerJS not ready yet, waiting...');
+                // If PeerJS isn't ready, we wait for the 'open' event.
+                // We'll attach a one-time listener to peer.
+                peer.once('open', () => {
+                     console.log('PeerJS ready now, joining game.');
+                     joinGame(hostIdFromUrl);
+                });
+            }
+        };
+        joinByLinkBtn.addEventListener('click', joinAction);
+        
+        // Auto-join after a short delay to allow PeerJS to initialize
+        setTimeout(joinAction, 500);
+
+        return; // Don't set up the other listeners
+    }
     
     hostBtn.addEventListener('click', () => {
         if (peerId) {
@@ -267,10 +302,12 @@ function initializePeerJS() {
 }
 
 function generateHostQRCodes(id) {
+    const joinUrl = `https://champions.on.websim.com?ID=${id}`;
+
     // Generate mini QR code for in-game display
     new QRious({
         element: document.getElementById('mini-qr-code'),
-        value: id,
+        value: joinUrl,
         size: 80,
         foreground: '#ffffff',
         background: 'transparent'
@@ -279,7 +316,7 @@ function generateHostQRCodes(id) {
     // Generate fullscreen QR code
     new QRious({
         element: document.getElementById('fullscreen-qr-code'),
-        value: id,
+        value: joinUrl,
         size: Math.min(window.innerWidth, window.innerHeight) * 0.6,
         foreground: '#ffffff',
         background: 'transparent',

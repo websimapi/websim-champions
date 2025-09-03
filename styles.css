@@ -877,8 +877,10 @@ body {
 .player-chip[data-color="red"] { border-color: #ef4444; }
 
 @media (max-width: 768px) {
-  body.mobile.mobile-single-slot .players-strip { display: flex; }
-  body.mobile.mobile-single-slot .characters-grid { overflow: visible; }
-  body.mobile.mobile-single-slot .character-slot { display: none; }
-  body.mobile.mobile-single-slot .character-slot.own-slot { display: flex; }
+  .title { display: none; }
+  body.mobile .character-selection { padding: 0; }
+  body.mobile .characters-grid-container,
+  body.mobile .characters-grid { height: 100vh; min-height: 100vh; }
+  body.mobile.mobile-single-slot .character-slot.own-slot { height: 100vh; }
+  body.mobile .character-frame { border-radius: 0; }
 }

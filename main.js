@@ -264,16 +264,20 @@ function updateCharacterSlotsUI() {
             
             // Add "waiting for player" text if it doesn't exist
             const statsContainer = slot.querySelector('.character-stats');
-            if (statsContainer && !statsContainer.querySelector('.waiting-for-player')) {
-                const waitingText = document.createElement('div');
-                waitingText.className = 'waiting-for-player';
-                waitingText.innerHTML = 'Waiting for a player to join<span class="ellipsis"></span>';
-                statsContainer.appendChild(waitingText);
+            if (statsContainer) {
+                let waitingText = statsContainer.querySelector('.waiting-for-player');
+                if (!waitingText) {
+                    waitingText = document.createElement('div');
+                    waitingText.className = 'waiting-for-player';
+                    waitingText.innerHTML = 'Waiting for a player to join<span class="ellipsis"></span>';
+                    statsContainer.appendChild(waitingText);
+                }
             }
         }
     });
     suppressUIAnimationOnce = false;
     if (typeof renderPlayersStrip === 'function') renderPlayersStrip();
+    if (typeof updateMobileSlotPicker === 'function') updateMobileSlotPicker();
 }
 
 function hostAssignClientToSlot(peerIdToMove, targetIndex) {

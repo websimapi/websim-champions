@@ -28,13 +28,12 @@ function initializeCharacterSelection() {
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex - 1 + characters.length) % characters.length;
             
-            updateCharacterSlot(slot, characters[currentIndex], 'left');
-            
-            // Update player slot data and send to host/broadcast
-            playerSlots[index].characterIndex = currentIndex;
             if (isHost) {
+                updateCharacterSlot(slot, characters[currentIndex], 'left');
+                playerSlots[index].characterIndex = currentIndex;
                 broadcastToClients({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'left' });
             } else {
+                slot.querySelectorAll('.arrow, .gender-toggle').forEach(el => el.disabled = true);
                 sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'left' });
             }
         });
@@ -45,13 +44,12 @@ function initializeCharacterSelection() {
             let currentIndex = parseInt(slot.dataset.characterIndex, 10);
             currentIndex = (currentIndex + 1) % characters.length;
             
-            updateCharacterSlot(slot, characters[currentIndex], 'right');
-            
-            // Update player slot data and send to host/broadcast
-            playerSlots[index].characterIndex = currentIndex;
             if (isHost) {
+                updateCharacterSlot(slot, characters[currentIndex], 'right');
+                playerSlots[index].characterIndex = currentIndex;
                 broadcastToClients({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'right' });
             } else {
+                slot.querySelectorAll('.arrow, .gender-toggle').forEach(el => el.disabled = true);
                 sendToHost({ type: 'character_change', slotIndex: index, characterIndex: currentIndex, direction: 'right' });
             }
         });
@@ -65,20 +63,14 @@ function initializeCharacterSelection() {
                 const newGender = toggle.dataset.gender;
                 if (slot.dataset.archerGender === newGender) return; // No change
 
-                // Update state and UI
-                slot.dataset.archerGender = newGender;
-                genderToggles.forEach(t => t.classList.remove('active'));
-                toggle.classList.add('active');
-
-                // Trigger character update
-                const currentIndex = parseInt(slot.dataset.characterIndex, 10);
-                updateCharacterSlot(slot, characters[currentIndex], 'fade');
-                
-                // Update player slot data and send to host/broadcast
-                playerSlots[index].gender = newGender;
-                 if (isHost) {
+                if (isHost) {
+                    slot.dataset.archerGender = newGender;
+                    genderToggles.forEach(t => t.classList.toggle('active', t.dataset.gender === newGender));
+                    updateCharacterSlot(slot, characters[parseInt(slot.dataset.characterIndex, 10)], 'fade');
+                    playerSlots[index].gender = newGender;
                     broadcastToClients({ type: 'gender_change', slotIndex: index, gender: newGender });
                 } else {
+                    slot.querySelectorAll('.arrow, .gender-toggle').forEach(el => el.disabled = true);
                     sendToHost({ type: 'gender_change', slotIndex: index, gender: newGender });
                 }
             });

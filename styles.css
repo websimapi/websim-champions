@@ -877,10 +877,10 @@ body {
 .player-chip[data-color="red"] { border-color: #ef4444; }
 
 @media (max-width: 768px) {
-  .title { display: none; }
-  body.mobile .character-selection { padding: 0; }
-  body.mobile .characters-grid-container,
-  body.mobile .characters-grid { height: 100vh; min-height: 100vh; }
-  body.mobile.mobile-single-slot .character-slot.own-slot { height: 100vh; }
-  body.mobile .character-frame { border-radius: 0; }
+  body.mobile .title { display: none; }
+  body.mobile .character-selection { height: 100dvh; }
+  body.mobile.mobile-single-slot .characters-grid-container { flex-grow: 1; min-height: 0; }
+  body.mobile.mobile-single-slot .characters-grid { height: 100%; align-items: stretch; }
+  body.mobile.mobile-single-slot .character-slot.own-slot { display: flex; width: 100%; max-width: none; height: 100%; }
+  body.mobile.mobile-single-slot .character-frame { height: 100%; }
 }

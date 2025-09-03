@@ -499,9 +499,7 @@ function hostSwitchToSlot(targetIndex) {
         wrap && wrap.querySelectorAll('.character-image').forEach(img => { if (img.dataset.blobUrl) URL.revokeObjectURL(img.dataset.blobUrl); img.remove(); });
         // add skull overlay to the slot we vacated
         if (wrap && !prevEl.querySelector('.skull-overlay')) {
-            const skull = document.createElement('div');
-            skull.className = 'skull-overlay';
-            skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+            const skull = createGlowingSkullOverlay(prevEl.dataset.color);
             wrap.appendChild(skull);
         }
     }

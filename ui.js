@@ -1,4 +1,62 @@
 // UI interaction management
+
+function createGlowingSkullOverlay(slotColorName) {
+    const skullOverlay = document.createElement('div');
+    skullOverlay.className = 'skull-overlay';
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    const skullImg = new Image();
+    skullImg.src = '/skull.png';
+
+    skullImg.onload = () => {
+        const color = slotColors[slotColorName];
+        if (typeof color === 'undefined') {
+            // Fallback for safety, draw skull without glow
+            ctx.drawImage(skullImg, 0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        const brightColor = `hsl(${color}, 100%, 80%)`;
+        const midColor = `hsl(${color}, 100%, 50%)`;
+
+        // Define socket positions (normalized)
+        const sockets = [
+            { x: 0.35, y: 0.45, r: 0.12 }, // Left Eye
+            { x: 0.65, y: 0.45, r: 0.12 }, // Right Eye
+            { x: 0.5, y: 0.6, r: 0.08 }    // Nose
+        ];
+
+        ctx.globalCompositeOperation = 'source-over';
+        
+        // Draw glows
+        sockets.forEach(socket => {
+            const gx = socket.x * canvas.width;
+            const gy = socket.y * canvas.height;
+            const gr = socket.r * canvas.width;
+
+            const gradient = ctx.createRadialGradient(gx, gy, gr * 0.1, gx, gy, gr);
+            gradient.addColorStop(0, brightColor);
+            gradient.addColorStop(0.5, midColor);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(gx, gy, gr, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+
+        // Draw skull image on top
+        ctx.drawImage(skullImg, 0, 0, canvas.width, canvas.height);
+    };
+    
+    skullOverlay.appendChild(canvas);
+    return skullOverlay;
+}
+
 function initializeCharacterSelection() {
     const characterSlots = document.querySelectorAll('.character-slot');
 
@@ -10,9 +68,7 @@ function initializeCharacterSelection() {
             // ensure skull overlay exists for empty slots on load
             if (!slot.querySelector('.skull-overlay')) {
                 const wrap = slot.querySelector('.character-image-wrapper');
-                const skull = document.createElement('div');
-                skull.className = 'skull-overlay';
-                skull.innerHTML = '<img src="/skull.png" alt="Empty Slot">';
+                const skull = createGlowingSkullOverlay(slot.dataset.color);
                 wrap.appendChild(skull);
             }
         }

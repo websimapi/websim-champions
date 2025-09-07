@@ -120,10 +120,9 @@ function updateMobileSlotPicker() {
 }
 
 function canControlSlot(slotIndex) {
-    // Host can control any slot; clients only their assigned slot.
-    const slotData = playerSlots[slotIndex];
-    if (isHost) return true;
-    return slotData.occupied && slotData.playerId === peerId;
+    // A user can only control their own slot.
+    // 'mySlotIndex' is the authoritative index for the current user's slot.
+    return slotIndex === mySlotIndex;
 }
 
 function requestSlotSwitch(targetIndex) {

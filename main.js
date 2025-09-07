@@ -44,6 +44,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeStartOverlay();
 });
 
+// This will be replaced by the module version below.
+// This is to prevent double-execution.
+window.addEventListener('load', () => {});
+
+
 function initializePeerJS() {
     peer = new Peer();
     

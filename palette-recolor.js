@@ -23,11 +23,21 @@
     return idx;
   }
 
-  function slotShadeColor(hue, band){
+  function slotShadeColor(hue, band, px, py, w, h){
     const shadeIdx = band - 1; // 0..3
-    const sat = [0.65, 0.70, 0.75, 0.80][shadeIdx];
-    const light = [0.28, 0.42, 0.60, 0.78][shadeIdx];
-    return hslToRgb(hue, sat, light);
+    const baseSat = [0.65, 0.70, 0.75, 0.80][shadeIdx];
+    const baseLight = [0.28, 0.42, 0.60, 0.78][shadeIdx];
+    // subtle vertical gradient: slightly brighter towards upper areas
+    const grad = (py / h);
+    const lightGradAdj = (0.5 - grad) * 0.06; // -0.03..+0.03
+    // micro-dither to break flat bands (hash without RNG)
+    const n = Math.sin(px * 12.9898 + py * 78.233) * 43758.5453;
+    const frac = n - Math.floor(n);
+    const noiseL = (frac - 0.5) * 0.05; // +/- 0.025
+    const noiseS = (frac - 0.5) * 0.03; // +/- 0.015
+    const s = clamp01(baseSat + noiseS);
+    const l = clamp01(baseLight + lightGradAdj + noiseL);
+    return hslToRgb(hue, s, l);
   }
 
   function skinColor(palette, luma){ // keep some shading from original luma
@@ -61,8 +71,11 @@
             const y=getLuma(r,g,b);
             const band=bandForLuma(y);
             let R=r,G=g,B=b;
+            const pixelIndex = i / 4;
+            const px = pixelIndex % c.width;
+            const py = Math.floor(pixelIndex / c.width);
             if (band===0){ R=0; G=0; B=0; } // hair
-            else if (band>=1 && band<=4){ const col=slotShadeColor(hue, band); R=col.r; G=col.g; B=col.b; }
+            else if (band>=1 && band<=4){ const col=slotShadeColor(hue, band, px, py, c.width, c.height); R=col.r; G=col.g; B=col.b; }
             else if (band===5){ R=u1.r; G=u1.g; B=u1.b; }
             else if (band===6){ R=u2.r; G=u2.g; B=u2.b; }
             else { const col=skinColor(pal, y); R=col.r; G=col.g; B=col.b; }

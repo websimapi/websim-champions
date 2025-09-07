@@ -1,18 +1,12 @@
 // 8-shade grayscale quantization to standardize assets before recolor
 (function(){
-  const LEVELS = [0, 32, 56, 84, 112, 168, 208, 248]; // [hair, slot1, slot2, slot3, slot4, unique1, unique2, skin]
-  const THRESH = [10, 40, 70, 100, 130, 185, 235];    // bands matching palette-recolor.js bandForLuma()
+  const LEVELS = [0, 32, 64, 96, 128, 160, 192, 255]; // exact 8-level grayscale
 
   function luma(r,g,b){ return Math.round(0.2126*r + 0.7152*g + 0.0722*b); }
   function band(y){
-    if (y <= THRESH[0]) return 0;
-    if (y <= THRESH[1]) return 1;
-    if (y <= THRESH[2]) return 2;
-    if (y <= THRESH[3]) return 3;
-    if (y <= THRESH[4]) return 4;
-    if (y <= THRESH[5]) return 5;
-    if (y <= THRESH[6]) return 6;
-    return 7;
+    let idx=0, min=1e9;
+    for(let i=0;i<LEVELS.length;i++){ const d=Math.abs(y-LEVELS[i]); if(d<min){min=d; idx=i;} }
+    return idx;
   }
 
   async function grayscaleQuantize(img, returnBlobUrl=true){

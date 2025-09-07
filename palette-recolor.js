@@ -15,18 +15,12 @@
     const m=l-c/2; return {r:Math.round((r1+m)*255), g:Math.round((g1+m)*255), b:Math.round((b1+m)*255)}; }
   function clamp01(v){ return Math.max(0, Math.min(1, v)); }
 
-  // band edges (inclusive) in 0..255 luma:
-  // 0: hair (black), 1-30: clothing shade 1, 31-60: shade 2, 61-90: shade 3, 91-120: shade 4,
-  // 121-170: unique1, 171-230: unique2, 231-255: skin (white)
+  // Map luma to nearest of the 8 exact grayscale levels used by assets
+  const LEVELS = [0, 32, 64, 96, 128, 160, 192, 255];
   function bandForLuma(y){
-    if (y <= 10) return 0;              // hair
-    if (y <= 40) return 1;              // slot shade 1 (dark)
-    if (y <= 70) return 2;              // slot shade 2
-    if (y <= 100) return 3;             // slot shade 3
-    if (y <= 130) return 4;             // slot shade 4 (light)
-    if (y <= 185) return 5;             // unique1
-    if (y <= 235) return 6;             // unique2
-    return 7;                           // skin
+    let idx=0, min=1e9;
+    for(let i=0;i<LEVELS.length;i++){ const d=Math.abs(y-LEVELS[i]); if(d<min){min=d; idx=i;} }
+    return idx;
   }
 
   function slotShadeColor(hue, band){

@@ -37,6 +37,28 @@
     return hslToRgb(h, s, clamp01(baseL + shade));
   }
 
+  function rgbToHsl(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0; // achromatic
+    } else {
+      const d = max - min;
+      s = d / (1 - Math.abs(2 * l - 1));
+      if (l < 0.5) {
+        h = (max - g) / d + (max - b) / d * 6;
+      } else {
+        h = (max - g) / d + (max - b) / d * 6;
+      }
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+    }
+
+    return { h: h, s: s, l: l };
+  }
+
   function paletteFor(character){
     const name = character?.name || 'Unknown';
     return DEFAULT_PALETTES[name] || DEFAULT_PALETTES.Unknown;
@@ -53,20 +75,13 @@
           x.drawImage(img,0,0);
           const d=x.getImageData(0,0,c.width,c.height), p=d.data;
           const hue=SLOT_HUES[slotColorName] ?? 240;
-          const pal=paletteFor(character);
-          const u1=hexToRgb(pal.unique1), u2=hexToRgb(pal.unique2);
+          const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
           for(let i=0;i<p.length;i+=4){
             const a=p[i+3]; if(a<5) continue;
-            const r=p[i], g=p[i+1], b=p[i+2];
-            const y=getLuma(r,g,b);
+            const r=p[i], g=p[i+1], b=p[i+2]; const y=getLuma(r,g,b);
+            const hsl=rgbToHsl(r,g,b);
             const band=bandForLuma(y);
-            let R=r,G=g,B=b;
-            if (band===0){ R=0; G=0; B=0; } // hair
-            else if (band>=1 && band<=4){ const col=slotShadeColor(hue, band); R=col.r; G=col.g; B=col.b; }
-            else if (band===5){ R=u1.r; G=u1.g; B=u1.b; }
-            else if (band===6){ R=u2.r; G=u2.g; B=u2.b; }
-            else { const col=skinColor(pal, y); R=col.r; G=col.g; B=col.b; }
-            p[i]=R; p[i+1]=G; p[i+2]=B;
+            if (hsl.s < 0.12 && band>=1 && band<=4){ const tgt=slotShadeColor(hue, band); const w=Math.max(0, 1 - Math.abs(y-LEVELS[band])/22); p[i]=lerp(r,tgt.r,w); p[i+1]=lerp(g,tgt.g,w); p[i+2]=lerp(b,tgt.b,w); }
           }
           x.putImageData(d,0,0);
           c.toBlob(blob=>{

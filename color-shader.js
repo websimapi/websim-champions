@@ -6,7 +6,6 @@ const slotColors = {
     red: 0
 };
 const grayscaleCache = {};
-const cleanupCache = {};
 
 // Apply CSS filter to shift image color
 function applyColorShader(slot) {
@@ -35,11 +34,7 @@ function applyColorShaderToImage(image, slotColorName) {
 
 function processAndCacheImage(img, characterData, slotColorName) {
     return (async () => {
-        const src = img.src;
-        const cleaned = cleanupCache[src] || (cleanupCache[src] = await cleanSprite(img, true));
-        const gkey = cleaned || src;
-        const g = grayscaleCache[gkey] || (grayscaleCache[gkey] = await grayscaleQuantize(await loadImage(gkey), true));
-        const gimg = await loadImage(g);
-        return paletteRecolor(gimg, characterData, slotColorName, true);
+        // Use original colored asset; recolor only grayscale trim regions
+        return paletteRecolor(img, characterData, slotColorName, true);
     })();
 }

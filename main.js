@@ -9,7 +9,6 @@
 // removed initializeRelicCursor() function - now in cursor.js
 // removed preprocessCharacters() function - now in characters.js
 
-// State is now managed in state.js and exposed on the window object
 let preprocessPromise = null;
 let peer = null;
 let peerId = null;
@@ -44,11 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeCharacterSelection();
     initializeStartOverlay();
 });
-
-// This will be replaced by the module version below.
-// This is to prevent double-execution.
-window.addEventListener('load', () => {});
-
 
 function initializePeerJS() {
     peer = new Peer();

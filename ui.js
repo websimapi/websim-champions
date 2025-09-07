@@ -116,12 +116,12 @@ function updateMobileSlotPicker() {
     picker.querySelectorAll('.slot-pill').forEach(btn => {
         const idx = parseInt(btn.dataset.slot, 10);
         btn.classList.toggle('occupied', !!playerSlots[idx]?.occupied);
+        btn.classList.toggle('current', idx === mySlotIndex);
     });
 }
 
 function canControlSlot(slotIndex) {
-    // A user can only control their own slot.
-    // 'mySlotIndex' is the authoritative index for the current user's slot.
+    // Players can only control their assigned slot.
     return slotIndex === mySlotIndex;
 }
 

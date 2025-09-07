@@ -34,4 +34,12 @@
     content: ""; position: absolute; inset: 0;
     background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(0,0,0,0.65) 6px 12px);
 }
+.slot-pill.current {
+    box-shadow: 0 0 0 3px white, 0 0 0 5px var(--border-color);
+}
+.slot-pill[data-color="blue"].current { --border-color: #4a9eff; }
+.slot-pill[data-color="green"].current { --border-color: #4ade80; }
+.slot-pill[data-color="yellow"].current { --border-color: #fbbf24; }
+.slot-pill[data-color="red"].current { --border-color: #ef4444; }
+
 @media (min-width: 901px) { .mobile-slot-picker { display: none; } }
